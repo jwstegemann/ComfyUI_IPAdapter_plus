@@ -548,7 +548,7 @@ class IPAdapterUnifiedLoaderFaceID(IPAdapterUnifiedLoader):
             "preset": (['FACEID', 'FACEID PLUS - SD1.5 only', 'FACEID PLUS V2', 'FACEID PORTRAIT (style transfer)', 'FACEID PORTRAIT UNNORM - SDXL only (strong)'], ),
             "lora_strength": ("FLOAT", { "default": 0.6, "min": 0, "max": 1, "step": 0.01 }),
             "provider": (["CPU", "CUDA", "ROCM", "DirectML", "OpenVINO", "CoreML"], ),
-            "cache_models": True
+            "cache_models": ("BOOLEAN", { "default": True })
         },
         "optional": {
             "ipadapter": ("IPADAPTER", ),
