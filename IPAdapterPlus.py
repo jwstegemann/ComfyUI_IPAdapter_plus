@@ -411,7 +411,7 @@ def ipadapter_execute(model,
 
 # Caches
 cached_insightface = { "provider": None, "model": None}
-cached_lora = None
+cached_lora = { "file": None, "model": None }
 cached_clipvision = { "file": None, "model": None }
 cached_ipadapter = { "file": None, "model": None }
 cached_insightface = { "provider": None, "model": None }
@@ -502,7 +502,7 @@ class IPAdapterUnifiedLoader:
                     torch.cuda.empty_cache()
 
             if lora_model is None:
-                if (cached_lora['model'] != None):
+                if (cached_lora != None):
                     lora_model = cached_lora['model']
                     self.lora = { 'file': lora_file, 'model': lora_model } 
                     print(f"\033[33mINFO: Using cached LoRA model from {lora_file}\033[0m")
