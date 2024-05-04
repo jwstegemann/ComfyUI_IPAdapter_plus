@@ -437,7 +437,7 @@ class IPAdapterUnifiedLoader:
     FUNCTION = "load_models"
     CATEGORY = "ipadapter"
 
-    def load_models(self, model, preset, lora_strength=0.0, provider="CPU", ipadapter=None):
+    def load_models(self, model, preset, lora_strength=0.0, provider="CPU", cache_models=False, ipadapter=None):
         pipeline = { "clipvision": { 'file': None, 'model': None }, "ipadapter": { 'file': None, 'model': None }, "insightface": { 'provider': None, 'model': None } }
         if ipadapter is not None:
             pipeline = ipadapter
@@ -453,14 +453,15 @@ class IPAdapterUnifiedLoader:
                 if (clipvision_file == cached_clipvision['file'] and cached_clipvision['model'] != None):
                     self.clipvision['file'] = cached_clipvision['file']
                     self.clipvision['model'] = cached_clipvision['model']
-                    print(f"\033[33mINFO: Useing Cached Clip Vision model\033[0m")
+                    print(f"\033[33mINFO: Using Cached Clip Vision model\033[0m")
                 else:
                     self.clipvision['file'] = clipvision_file
                     self.clipvision['model'] = load_clip_vision(clipvision_file)
                     print(f"\033[33mINFO: Clip Vision model loaded from {clipvision_file}\033[0m")
-                    cached_clipvision['file'] = clipvision_file
-                    cached_clipvision['model'] = self.clipvision['model']
-                    print(f"\033[33mINFO: Cached Clip Vision model from {clipvision_file}\033[0m")
+                    if (cache_models):
+                        cached_clipvision['file'] = clipvision_file
+                        cached_clipvision['model'] = self.clipvision['model']
+                        print(f"\033[33mINFO: Cached Clip Vision model from {clipvision_file}\033[0m")
             else:
                 self.clipvision = pipeline['clipvision']
 
@@ -472,7 +473,7 @@ class IPAdapterUnifiedLoader:
 
         if ipadapter_file != self.ipadapter['file']:
             if pipeline['ipadapter']['file'] != ipadapter_file:
-                if (self.ipadapter['file'] == ipadapter_file and cached_ipadapter['model']):
+                if (cached_ipadapter['model']):
                     self.ipadapter['file'] = cached_ipadapter['file']
                     self.ipadapter['model'] = cached_ipadapter['model']
                     print(f"\033[33mINFO: Using cached IPAdapter model\033[0m")
@@ -480,9 +481,10 @@ class IPAdapterUnifiedLoader:
                     self.ipadapter['file'] = ipadapter_file
                     self.ipadapter['model'] = ipadapter_model_loader(ipadapter_file)
                     print(f"\033[33mINFO: IPAdapter model loaded from {ipadapter_file}\033[0m")
-                    cached_ipadapter['file'] = self.ipadapter['file']
-                    cached_ipadapter['model'] = self.ipadapter['model']
-                    print(f"\033[33mINFO: Cached IPAdapter model from {ipadapter_file}\033[0m")
+                    if (cache_models):
+                        cached_ipadapter['file'] = self.ipadapter['file']
+                        cached_ipadapter['model'] = self.ipadapter['model']
+                        print(f"\033[33mINFO: Cached IPAdapter model from {ipadapter_file}\033[0m")
             else:
                 self.ipadapter = pipeline['ipadapter']
 
@@ -509,9 +511,10 @@ class IPAdapterUnifiedLoader:
                     lora_model = comfy.utils.load_torch_file(lora_file, safe_load=True)
                     self.lora = { 'file': lora_file, 'model': lora_model }
                     print(f"\033[33mINFO: LoRA model loaded from {lora_file}\033[0m")
-                    cached_lora['file'] =  lora_file
-                    cached_lora['model'] = lora_model
-                    print(f"\033[33mINFO: Cached LoRA model loaded from {lora_file}\033[0m")
+                    if (cache_models):
+                        cached_lora['file'] =  lora_file
+                        cached_lora['model'] = lora_model
+                        print(f"\033[33mINFO: Cached LoRA model loaded from {lora_file}\033[0m")
 
             if lora_strength > 0:
                 model, _ = load_lora_for_models(model, None, lora_model, lora_strength, 0)
@@ -520,7 +523,6 @@ class IPAdapterUnifiedLoader:
         if is_insightface:
             if provider != self.insightface['provider']:
                 if pipeline['insightface']['provider'] != provider:
-                    # added to use caching
                     if (cached_insightface['provider'] == provider and cached_insightface['model'] != None):
                         self.insightface['provider'] = cached_insightface['provider']
                         self.insightface['model'] = cached_insightface['model']
@@ -528,11 +530,11 @@ class IPAdapterUnifiedLoader:
                     else:
                         self.insightface['provider'] = provider
                         self.insightface['model'] = insightface_loader(provider)
-                        # cache loaded model
-                        cached_insightface['provider'] = provider
-                        cached_insightface['model'] = self.insightface['model']
-                        print(f"\033[33mINFO: Cached InsightFace model for {provider} provider\033[0m")
                         print(f"\033[33mINFO: InsightFace model loaded with {provider} provider\033[0m")
+                        if (cache_models):
+                            cached_insightface['provider'] = provider
+                            cached_insightface['model'] = self.insightface['model']
+                            print(f"\033[33mINFO: Cached InsightFace model for {provider} provider\033[0m")
                 else:
                     self.insightface = pipeline['insightface']
 
@@ -546,6 +548,7 @@ class IPAdapterUnifiedLoaderFaceID(IPAdapterUnifiedLoader):
             "preset": (['FACEID', 'FACEID PLUS - SD1.5 only', 'FACEID PLUS V2', 'FACEID PORTRAIT (style transfer)', 'FACEID PORTRAIT UNNORM - SDXL only (strong)'], ),
             "lora_strength": ("FLOAT", { "default": 0.6, "min": 0, "max": 1, "step": 0.01 }),
             "provider": (["CPU", "CUDA", "ROCM", "DirectML", "OpenVINO", "CoreML"], ),
+            "cache_models": True
         },
         "optional": {
             "ipadapter": ("IPADAPTER", ),
