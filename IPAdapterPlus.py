@@ -408,6 +408,9 @@ def ipadapter_execute(model,
  Loaders
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+
+cached_insightface = { "provider": None, "model": None}
+
 class IPAdapterUnifiedLoader:
     def __init__(self):
         self.lora = None
@@ -488,9 +491,19 @@ class IPAdapterUnifiedLoader:
         if is_insightface:
             if provider != self.insightface['provider']:
                 if pipeline['insightface']['provider'] != provider:
-                    self.insightface['provider'] = provider
-                    self.insightface['model'] = insightface_loader(provider)
-                    print(f"\033[33mINFO: InsightFace model loaded with {provider} provider\033[0m")
+                    # added to use caching
+                    if (cached_insightface['provider'] == provider and cached_insightface['model'] != None):
+                        self.insightface['provider'] = cached_insightface['provider']
+                        self.insightface['model'] = cached_insightface['model']
+                        print(f"\033[33mINFO: InsightFace used from Cache!\033[0m")
+                    else:
+                        self.insightface['provider'] = provider
+                        self.insightface['model'] = insightface_loader(provider)
+                        # cache loaded model
+                        cached_insightface['provider'] = provider
+                        cached_insightface['model'] = self.insightface['model']
+                        print(f"\033[33mINFO: Cached InsightFace model for {provider} provider\033[0m")
+                        print(f"\033[33mINFO: InsightFace model loaded with {provider} provider\033[0m")
                 else:
                     self.insightface = pipeline['insightface']
 
