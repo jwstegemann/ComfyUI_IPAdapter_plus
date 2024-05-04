@@ -510,7 +510,7 @@ class IPAdapterUnifiedLoader:
                     self.lora = { 'file': lora_file, 'model': lora_model }
                     print(f"\033[33mINFO: LoRA model loaded from {lora_file}\033[0m")
                     cached_lora['file'] =  lora_file
-                    cached_lora['model'] = lora_model } 
+                    cached_lora['model'] = lora_model
                     print(f"\033[33mINFO: Cached LoRA model loaded from {lora_file}\033[0m")
 
             if lora_strength > 0:
