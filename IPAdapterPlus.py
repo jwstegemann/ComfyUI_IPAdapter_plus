@@ -409,7 +409,12 @@ def ipadapter_execute(model,
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
+# Caches
 cached_insightface = { "provider": None, "model": None}
+cached_lora = None
+cached_clipvision = { "file": None, "model": None }
+cached_ipadapter = { "file": None, "model": None }
+cached_insightface = { "provider": None, "model": None }
 
 class IPAdapterUnifiedLoader:
     def __init__(self):
@@ -445,9 +450,18 @@ class IPAdapterUnifiedLoader:
 
         if clipvision_file != self.clipvision['file']:
             if clipvision_file != pipeline['clipvision']['file']:
-                self.clipvision['file'] = clipvision_file
-                self.clipvision['model'] = load_clip_vision(clipvision_file)
-                print(f"\033[33mINFO: Clip Vision model loaded from {clipvision_file}\033[0m")
+                # use cache 
+                if (clipvision_file == cached_clipvision['file'] and cached_clipvision['model'] != None):
+                    self.clipvision['file'] = cached_clipvision['file']
+                    self.clipvision['model'] = cached_clipvision['model']
+                    print(f"\033[33mINFO: Useing Cached Clip Vision model\033[0m")
+                else:
+                    self.clipvision['file'] = clipvision_file
+                    self.clipvision['model'] = load_clip_vision(clipvision_file)
+                    print(f"\033[33mINFO: Clip Vision model loaded from {clipvision_file}\033[0m")
+                    cached_clipvision['file'] = clipvision_file
+                    cached_clipvision['model'] = self.clipvision['model']
+                    print(f"\033[33mINFO: Cached Clip Vision model from {clipvision_file}\033[0m")
             else:
                 self.clipvision = pipeline['clipvision']
 
@@ -459,9 +473,17 @@ class IPAdapterUnifiedLoader:
 
         if ipadapter_file != self.ipadapter['file']:
             if pipeline['ipadapter']['file'] != ipadapter_file:
-                self.ipadapter['file'] = ipadapter_file
-                self.ipadapter['model'] = ipadapter_model_loader(ipadapter_file)
-                print(f"\033[33mINFO: IPAdapter model loaded from {ipadapter_file}\033[0m")
+                if (self.ipadapter['file'] == ipadapter_file and cached_ipadapter['model']):
+                    self.ipadapter['file'] = cached_ipadapter['file']
+                    self.ipadapter['model'] = cached_ipadapter['model']
+                    print(f"\033[33mINFO: Using cached IPAdapter model\033[0m")
+                else:    
+                    self.ipadapter['file'] = ipadapter_file
+                    self.ipadapter['model'] = ipadapter_model_loader(ipadapter_file)
+                    print(f"\033[33mINFO: IPAdapter model loaded from {ipadapter_file}\033[0m")
+                    cached_ipadapter['file'] = self.ipadapter['file']
+                    cached_ipadapter['model'] = self.ipadapter['model']
+                    print(f"\033[33mINFO: Cached IPAdapter model from {ipadapter_file}\033[0m")
             else:
                 self.ipadapter = pipeline['ipadapter']
 
@@ -480,9 +502,16 @@ class IPAdapterUnifiedLoader:
                     torch.cuda.empty_cache()
 
             if lora_model is None:
-                lora_model = comfy.utils.load_torch_file(lora_file, safe_load=True)
-                self.lora = { 'file': lora_file, 'model': lora_model }
-                print(f"\033[33mINFO: LoRA model loaded from {lora_file}\033[0m")
+                if (cached_lora['model'] != None):
+                    lora_model = cached_lora['model']
+                    self.lora = { 'file': lora_file, 'model': lora_model } 
+                    print(f"\033[33mINFO: Using cached LoRA model from {lora_file}\033[0m")
+                else:
+                    lora_model = comfy.utils.load_torch_file(lora_file, safe_load=True)
+                    self.lora = { 'file': lora_file, 'model': lora_model }
+                    print(f"\033[33mINFO: LoRA model loaded from {lora_file}\033[0m")
+                    cached_lora = { 'file': lora_file, 'model': lora_model } 
+                    print(f"\033[33mINFO: Cached LoRA model loaded from {lora_file}\033[0m")
 
             if lora_strength > 0:
                 model, _ = load_lora_for_models(model, None, lora_model, lora_strength, 0)
