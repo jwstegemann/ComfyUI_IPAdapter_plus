@@ -921,11 +921,12 @@ class IPAdapterFromFaceID():
         }
 
     CATEGORY = "ipadapter/faceid"
-    RETURN_TYPES = ("MODEL","IMAGE")
-    RETURN_NAMES = ("MODEL", "face_image")
+    RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
+        print("\033[33mINFO: ######################### A.\033[0m")
+
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
         if 'ipadapter' in ipadapter:
@@ -940,25 +941,26 @@ class IPAdapterFromFaceID():
         weight = weight
 
         work_model = model.clone()
+        print("\033[33mINFO: ######################### B.\033[0m")
 
-        ipa_args = {
-            "image": None,
-            "image_composition": None,
-            "image_negative": None,
-            "weight": weight,
-            "weight_composition": 1.0,
-            "weight_faceidv2": weight_faceidv2,
-            "weight_type": weight_type if not isinstance(weight_type, list) else weight_type,
-            "combine_embeds": combine_embeds,
-            "start_at": start_at if not isinstance(start_at, list) else start_at,
-            "end_at": end_at if not isinstance(end_at, list) else end_at,
-            "attn_mask": attn_mask if not isinstance(attn_mask, list) else attn_mask,
-            "unfold_batch": False,
-            "embeds_scaling": embeds_scaling,
-            "insightface": insightface if insightface is not None else ipadapter['insightface']['model'] if 'insightface' in ipadapter else None,
-            "layer_weights": None, # prior layer_weights, FIXME: where does this come from
-            "encode_batch_size": 0,
-        }
+        # ipa_args = {
+        #     "image": None,
+        #     "image_composition": None,
+        #     "image_negative": None,
+        #     "weight": weight,
+        #     "weight_composition": 1.0,
+        #     "weight_faceidv2": weight_faceidv2,
+        #     "weight_type": weight_type if not isinstance(weight_type, list) else weight_type,
+        #     "combine_embeds": combine_embeds,
+        #     "start_at": start_at if not isinstance(start_at, list) else start_at,
+        #     "end_at": end_at if not isinstance(end_at, list) else end_at,
+        #     "attn_mask": attn_mask if not isinstance(attn_mask, list) else attn_mask,
+        #     "unfold_batch": False,
+        #     "embeds_scaling": embeds_scaling,
+        #     "insightface": insightface if insightface is not None else ipadapter['insightface']['model'] if 'insightface' in ipadapter else None,
+        #     "layer_weights": None, # prior layer_weights, FIXME: where does this come from
+        #     "encode_batch_size": 0,
+        # }
 
         # from execute
         device = model_management.get_torch_device()
@@ -1120,7 +1122,13 @@ class IPAdapterFromFaceID():
         if attn_mask is not None:
             attn_mask = attn_mask.to(device, dtype=dtype)
 
+        print("\033[33mINFO: ######################### C.\033[0m")
+
+
         img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype)
+
+        print("\033[33mINFO: ######################### D.\033[0m")
+
 
         ipa = IPAdapter(
             ipadapter,
@@ -1187,6 +1195,9 @@ class IPAdapterFromFaceID():
                 patch_kwargs["number"] += 1
 
         del ipadapter
+
+        print("\033[33mINFO: ######################### E.\033[0m")
+
         return (work_model, None)
 
 
