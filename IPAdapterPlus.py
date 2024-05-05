@@ -914,7 +914,6 @@ class IPAdapterFromFaceID():
                 "embeds_scaling": (['V only', 'K+V', 'K+V w/ C penalty', 'K+mean(V) w/ C penalty'], ),
             },
             "optional": {
-                "image_negative": ("IMAGE",),
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
                 "insightface": ("INSIGHTFACE",),
@@ -922,11 +921,11 @@ class IPAdapterFromFaceID():
         }
 
     CATEGORY = "ipadapter/faceid"
-    RETURN_TYPES = ("MODEL","IMAGE")
-    RETURN_NAMES = ("MODEL", "face_image")
+    RETURN_TYPES = ("MODEL")
+    RETURN_NAMES = ("MODEL")
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, model, ipadapter, faceid, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0):
+    def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
         if 'ipadapter' in ipadapter:
@@ -938,16 +937,7 @@ class IPAdapterFromFaceID():
         if clip_vision is None:
             raise Exception("Missing CLIPVision model.")
 
-        if ipadapter_params is not None: # we are doing batch processing
-            image = ipadapter_params['image']
-            attn_mask = ipadapter_params['attn_mask']
-            weight = ipadapter_params['weight']
-            weight_type = ipadapter_params['weight_type']
-            start_at = ipadapter_params['start_at']
-            end_at = ipadapter_params['end_at']
-        else:
-            # at this point weight can be a list from the batch-weight or a single float
-            weight = [weight]
+        weight = weight
 
 
         work_model = model.clone()
@@ -957,7 +947,7 @@ class IPAdapterFromFaceID():
             "image_composition": None,
             "image_negative": None,
             "weight": weight,
-            "weight_composition": weight_composition,
+            "weight_composition": 1.0,
             "weight_faceidv2": weight_faceidv2,
             "weight_type": weight_type if not isinstance(weight_type, list) else weight_type,
             "combine_embeds": combine_embeds,
@@ -967,8 +957,8 @@ class IPAdapterFromFaceID():
             "unfold_batch": False,
             "embeds_scaling": embeds_scaling,
             "insightface": insightface if insightface is not None else ipadapter['insightface']['model'] if 'insightface' in ipadapter else None,
-            "layer_weights": layer_weights,
-            "encode_batch_size": encode_batch_size,
+            "layer_weights": None, # prior layer_weights, FIXME: where does this come from
+            "encode_batch_size": 0,
         }
 
         # from execute
@@ -1198,7 +1188,7 @@ class IPAdapterFromFaceID():
                 patch_kwargs["number"] += 1
 
         del ipadapter
-        return (model, image)
+        return (model)
 
 
 
