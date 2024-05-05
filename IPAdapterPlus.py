@@ -921,7 +921,8 @@ class IPAdapterFromFaceID():
         }
 
     CATEGORY = "ipadapter/faceid"
-    RETURN_TYPES = ("MODEL",)
+    RETURN_TYPES = ("MODEL","IMAGE")
+    RETURN_NAMES = ("MODEL", "face_image")
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
@@ -937,7 +938,6 @@ class IPAdapterFromFaceID():
             raise Exception("Missing CLIPVision model.")
 
         weight = weight
-
 
         work_model = model.clone()
 
@@ -1187,7 +1187,7 @@ class IPAdapterFromFaceID():
                 patch_kwargs["number"] += 1
 
         del ipadapter
-        return (work_model)
+        return (work_model, None)
 
 
 
