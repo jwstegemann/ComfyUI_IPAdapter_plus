@@ -894,7 +894,7 @@ class IPAdapterLoadFaceId:
     def load(self, faceid):
         input_dir = folder_paths.get_input_directory()
         path = os.path.join(input_dir, faceid)
-        return (torch.load(path).cpu())
+        return (torch.load(path))
 
 
 class IPAdapterFromFaceID():
