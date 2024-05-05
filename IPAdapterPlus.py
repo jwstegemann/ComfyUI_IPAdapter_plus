@@ -887,14 +887,14 @@ class IPAdapterLoadFaceId:
     def INPUT_TYPES(s):        
         return {"required": {"faceid": ("STRING", {"default": "PathToFaceID"}) } }
 
-    RETURN_TYPES = ("FACEID", )
+    RETURN_TYPES = ("faceid", )
     FUNCTION = "load"
     CATEGORY = "ipadapter/embeds"
 
     def load(self, faceid):
         input_dir = folder_paths.get_input_directory()
         path = os.path.join(input_dir, faceid)
-        return (torch.load(path).gpu())
+        return (torch.load(path).cpu())
 
 
 class IPAdapterFromFaceID():
