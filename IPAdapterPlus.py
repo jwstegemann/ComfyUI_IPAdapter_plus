@@ -887,9 +887,9 @@ class IPAdapterLoadFaceId:
     def INPUT_TYPES(s):        
         return {"required": {"faceid": ("STRING", {"default": "PathToFaceID"}) } }
 
-    RETURN_TYPES = ("faceid", )
+    RETURN_TYPES = ("FACEID", )
     FUNCTION = "load"
-    CATEGORY = "ipadapter/embeds"
+    CATEGORY = "ipadapter/faceid"
 
     def load(self, faceid):
         input_dir = folder_paths.get_input_directory()
