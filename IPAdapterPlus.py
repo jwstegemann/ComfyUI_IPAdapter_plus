@@ -921,8 +921,7 @@ class IPAdapterFromFaceID():
         }
 
     CATEGORY = "ipadapter/faceid"
-    RETURN_TYPES = ("MODEL")
-    RETURN_NAMES = ("MODEL")
+    RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
@@ -1146,8 +1145,8 @@ class IPAdapterFromFaceID():
 
         faceid = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt} if (is_faceid or is_faceidv2) else None
 
-        sigma_start = model.get_model_object("model_sampling").percent_to_sigma(start_at)
-        sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
+        sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
+        sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
 
         patch_kwargs = {
             "ipadapter": ipa,
@@ -1166,29 +1165,29 @@ class IPAdapterFromFaceID():
 
         if not is_sdxl:
             for id in [1,2,4,5,7,8]: # id of input_blocks that have cross attention
-                set_model_patch_replace(model, patch_kwargs, ("input", id))
+                set_model_patch_replace(work_model, patch_kwargs, ("input", id))
                 patch_kwargs["number"] += 1
             for id in [3,4,5,6,7,8,9,10,11]: # id of output_blocks that have cross attention
-                set_model_patch_replace(model, patch_kwargs, ("output", id))
+                set_model_patch_replace(work_model, patch_kwargs, ("output", id))
                 patch_kwargs["number"] += 1
-            set_model_patch_replace(model, patch_kwargs, ("middle", 0))
+            set_model_patch_replace(work_model, patch_kwargs, ("middle", 0))
         else:
             for id in [4,5,7,8]: # id of input_blocks that have cross attention
                 block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
                 for index in block_indices:
-                    set_model_patch_replace(model, patch_kwargs, ("input", id, index))
+                    set_model_patch_replace(work_model, patch_kwargs, ("input", id, index))
                     patch_kwargs["number"] += 1
             for id in range(6): # id of output_blocks that have cross attention
                 block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
                 for index in block_indices:
-                    set_model_patch_replace(model, patch_kwargs, ("output", id, index))
+                    set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
                     patch_kwargs["number"] += 1
             for index in range(10):
-                set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
+                set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
                 patch_kwargs["number"] += 1
 
         del ipadapter
-        return (model)
+        return (work_model)
 
 
 
