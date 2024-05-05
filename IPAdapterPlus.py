@@ -2072,6 +2072,11 @@ NODE_CLASS_MAPPINGS = {
     "IPAdapterPromptScheduleFromWeightsStrategy": IPAdapterPromptScheduleFromWeightsStrategy,
     "IPAdapterRegionalConditioning": IPAdapterRegionalConditioning,
     "IPAdapterCombineParams": IPAdapterCombineParams,
+
+    # StoredFaceId
+    "IPAdapterSaveFaceId": IPAdapterSaveFaceId,
+    "IPAdapterLoadFaceId": IPAdapterLoadFaceId,
+    "IPAdapterFromFaceID": IPAdapterFromFaceID
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -2109,4 +2114,9 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IPAdapterCombineWeights": "IPAdapter Combine Weights",
     "IPAdapterRegionalConditioning": "IPAdapter Regional Conditioning",
     "IPAdapterCombineParams": "IPAdapter Combine Params",
+
+        # StoredFaceId
+    "IPAdapterSaveFaceId": "IPAdapter Save FaceId",
+    "IPAdapterLoadFaceId": "IPAdapter Load FaceId",
+    "IPAdapterFromFaceID": "IPAdapter from FaceID"
 }
