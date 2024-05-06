@@ -894,7 +894,8 @@ class IPAdapterLoadFaceId:
     def load(self, faceid):
         input_dir = folder_paths.get_input_directory()
         path = os.path.join(input_dir, faceid)
-        return (torch.load(path))
+        #return (torch.load(path))
+        return "Hugo"
 
 
 class IPAdapterFromFaceID():
@@ -2054,6 +2055,8 @@ class IPAdapterFrom2FaceID():
 
     def fromFaceId(self, model, ipadapter, hugo):
         print("\033[33mINFO: ######################### A.\033[0m")
+
+        print(hugo)
 
         work_model = model.clone()
         print("\033[33mINFO: ######################### B.\033[0m")
