@@ -2042,7 +2042,6 @@ class IPAdapterFrom2FaceID():
             "required": {
                 "model": ("MODEL", ),
                 "ipadapter": ("IPADAPTER", ),
-                "faceid": ("FACEID", ),
             },
             "optional": {
             }
@@ -2052,7 +2051,7 @@ class IPAdapterFrom2FaceID():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "fromFaceId"
 
-    def fromFaceId(self, model, ipadapter, faceid):
+    def fromFaceId(self, model, ipadapter):
         print("\033[33mINFO: ######################### A.\033[0m")
 
         work_model = model.clone()
