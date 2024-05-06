@@ -980,7 +980,7 @@ class IPAdapterFromFaceID():
         is_full = "proj.3.weight" in ipadapter_model["image_proj"]
         is_portrait = "proj.2.weight" in ipadapter_model["image_proj"] and not "proj.3.weight" in ipadapter_model["image_proj"] and not "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"]
         is_portrait_unnorm = "portraitunnorm" in ipadapter_model
-        is_faceid = is_portrait or "0.to_q_lora.down.weight" in ipadapter["ip_adapter"] or is_portrait_unnorm
+        is_faceid = is_portrait or "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"] or is_portrait_unnorm
         is_plus = (is_full or "latents" in ipadapter_model["image_proj"] or "perceiver_resampler.proj_in.weight" in ipadapter_model["image_proj"]) and not is_portrait_unnorm
         is_faceidv2 = "faceidplusv2" in ipadapter_model
         output_cross_attention_dim = ipadapter_model["ip_adapter"]["1.to_k_ip.weight"].shape[1]
@@ -1198,7 +1198,6 @@ class IPAdapterFromFaceID():
                     set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
                     patch_kwargs["number"] += 1
             for index in range(10):
-                set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
                 patch_kwargs["number"] += 1
 
         del ipadapter_model
