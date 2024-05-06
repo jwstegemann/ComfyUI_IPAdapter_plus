@@ -2031,6 +2031,36 @@ class IPAdapterCombineParams:
             ipadapter_params["end_at"] += params_5["end_at"]
 
         return (ipadapter_params, )
+    
+
+
+
+class IPAdapterFrom2FaceID():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": ("MODEL", ),
+            },
+            "optional": {
+            }
+        }
+
+    CATEGORY = "ipadapter/faceid"
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "fromFaceId"
+
+    def fromFaceId(self, model):
+        print("\033[33mINFO: ######################### A.\033[0m")
+
+        work_model = model.clone()
+        print("\033[33mINFO: ######################### B.\033[0m")
+
+        return (work_model, None)
+
+
+
+
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2076,7 +2106,8 @@ NODE_CLASS_MAPPINGS = {
     # StoredFaceId
     "IPAdapterSaveFaceId": IPAdapterSaveFaceId,
     "IPAdapterLoadFaceId": IPAdapterLoadFaceId,
-    "IPAdapterFromFaceID": IPAdapterFromFaceID
+    "IPAdapterFromFaceID": IPAdapterFromFaceID,
+    "IPAdapterFrom2FaceID": IPAdapterFrom2FaceID
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -2118,5 +2149,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
         # StoredFaceId
     "IPAdapterSaveFaceId": "IPAdapter Save FaceId",
     "IPAdapterLoadFaceId": "IPAdapter Load FaceId",
-    "IPAdapterFromFaceID": "IPAdapter from FaceID"
+    "IPAdapterFromFaceID": "IPAdapter from FaceID",
+    "IPAdapterFrom2FaceID": "IPAdapterFrom2FaceID"
 }
+
