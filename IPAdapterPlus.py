@@ -1134,7 +1134,7 @@ class IPAdapterFromFaceID():
         print("\033[33mINFO: ######################### C.\033[0m")
 
 
-        img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype)
+        img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype) if faceid['img_cond_embeds'] is not None else None
 
         print("\033[33mINFO: ######################### D.\033[0m")
 
@@ -1152,11 +1152,11 @@ class IPAdapterFromFaceID():
             is_portrait_unnorm=is_portrait_unnorm,
         ).to(device, dtype=dtype)
 
-        cond = faceid['cond'].to(device, dtype=dtype) # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
+        cond = faceid['cond'].to(device, dtype=dtype) if faceid['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
-        uncond = faceid['uncond'].to(device, dtype=dtype) # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
+        uncond = faceid['uncond'].to(device, dtype=dtype) if faceid['uncond'] is not None else None # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
 
-        cond_alt = faceid['cond_alt'].to(device, dtype=dtype) # None
+        cond_alt = faceid['cond_alt'].to(device, dtype=dtype) if faceid['cond_alt'] is not None else None # None
         # if img_comp_cond_embeds is not None:
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
