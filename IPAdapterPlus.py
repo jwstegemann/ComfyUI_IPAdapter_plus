@@ -894,9 +894,7 @@ class IPAdapterLoadFaceId:
     def load(self, faceid):
         input_dir = folder_paths.get_input_directory()
         path = os.path.join(input_dir, faceid)
-        faceId = (torch.load(path))
-        print(faceId)
-        return { "cond": 4, "uncond": 3, "cond_alt" : 2, "img_cond_embeds": 1}
+        return (torch.load(path), )
 
 
 class IPAdapterFromFaceID():
@@ -2057,7 +2055,7 @@ class IPAdapterFrom2FaceID():
     def fromFaceId(self, model, ipadapter, hugo):
         print("\033[33mINFO: ######################### A.\033[0m")
 
-        print(hugo)
+        print(hugo);
 
         work_model = model.clone()
         print("\033[33mINFO: ######################### B.\033[0m")
@@ -2111,7 +2109,7 @@ NODE_CLASS_MAPPINGS = {
 
     # StoredFaceId
     "IPAdapterSaveFaceId": IPAdapterSaveFaceId,
-    "IPAdapterLoadFaceId": IPAdapterLoadFaceId,
+    "IPAdapterLcoadFaceId": IPAdapterLoadFaceId,
     "IPAdapterFromFaceID": IPAdapterFromFaceID,
     "IPAdapterFrom2FaceID": IPAdapterFrom2FaceID
 }
