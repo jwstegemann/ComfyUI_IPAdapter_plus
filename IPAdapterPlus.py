@@ -272,7 +272,7 @@ def ipadapter_execute(model,
             if image_composition is not None:
                 img_comp_cond_embeds = img_comp_cond_embeds.image_embeds
         del image_negative, image_composition
-        
+
         image = None if not is_faceid else image # if it's face_id we need the cropped face for later
     elif pos_embed is not None:
         img_cond_embeds = pos_embed
@@ -451,7 +451,7 @@ class IPAdapterUnifiedLoader:
 
         if clipvision_file != self.clipvision['file']:
             if clipvision_file != pipeline['clipvision']['file']:
-                # use cache 
+                # use cache
                 if (clipvision_file == cached_clipvision['file'] and cached_clipvision['model'] != None):
                     self.clipvision['file'] = cached_clipvision['file']
                     self.clipvision['model'] = cached_clipvision['model']
@@ -479,7 +479,7 @@ class IPAdapterUnifiedLoader:
                     self.ipadapter['file'] = cached_ipadapter['file']
                     self.ipadapter['model'] = cached_ipadapter['model']
                     print(f"\033[33mINFO: Using cached IPAdapter model\033[0m")
-                else:    
+                else:
                     self.ipadapter['file'] = ipadapter_file
                     self.ipadapter['model'] = ipadapter_model_loader(ipadapter_file)
                     print(f"\033[33mINFO: IPAdapter model loaded from {ipadapter_file}\033[0m")
@@ -507,7 +507,7 @@ class IPAdapterUnifiedLoader:
             if lora_model is None:
                 if (cached_lora['model'] != None):
                     lora_model = cached_lora['model']
-                    self.lora = { 'file': lora_file, 'model': lora_model } 
+                    self.lora = { 'file': lora_file, 'model': lora_model }
                     print(f"\033[33mINFO: Using cached LoRA model from {lora_file}\033[0m")
                 else:
                     lora_model = comfy.utils.load_torch_file(lora_file, safe_load=True)
@@ -855,7 +855,7 @@ class IPAdapterFaceID(IPAdapterAdvanced):
 
 #
 # here Storing, Loading and Reusing FaceID
-#    
+#
 class IPAdapterSaveFaceId:
     def __init__(self):
         self.output_dir = folder_paths.get_output_directory()
@@ -884,7 +884,7 @@ class IPAdapterSaveFaceId:
 
 class IPAdapterLoadFaceId:
     @classmethod
-    def INPUT_TYPES(s):        
+    def INPUT_TYPES(s):
         return {"required": {"faceid": ("STRING", {"default": "PathToFaceID"}) } }
 
     RETURN_TYPES = ("FACEID", )
@@ -1064,7 +1064,7 @@ class IPAdapterFromFaceID():
         #         if image_composition is not None:
         #             img_comp_cond_embeds = img_comp_cond_embeds.image_embeds
         #     del image_negative, image_composition
-            
+
         #     image = None if not is_faceid else image # if it's face_id we need the cropped face for later
         # elif pos_embed is not None:
         #     img_cond_embeds = pos_embed
@@ -1791,7 +1791,7 @@ class IPAdapterWeights:
             if len(weights) > 0:
                 start = weights[0]
                 end = weights[-1]
-            
+
             weights = []
 
             end_frame = min(end_frame, frames)
@@ -1820,7 +1820,7 @@ class IPAdapterWeights:
             weights = [0.0]
 
         frames = len(weights)
-        
+
         # repeat the images for cross fade
         image_1 = None
         image_2 = None
@@ -1828,7 +1828,7 @@ class IPAdapterWeights:
             if "shift" in method:
                 image_1 = image[:-1]
                 image_2 = image[1:]
-                
+
                 weights = weights * image_1.shape[0]
                 image_1 = image_1.repeat_interleave(frames, 0)
                 image_2 = image_2.repeat_interleave(frames, 0)
@@ -1885,7 +1885,7 @@ class IPAdapterPromptScheduleFromWeightsStrategy():
             "weights_strategy": ("WEIGHTS_STRATEGY",),
             "prompt": ("STRING", {"default": "", "multiline": True }),
             }}
-    
+
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("prompt_schedule", )
     FUNCTION = "prompt_schedule"
@@ -1979,7 +1979,7 @@ class IPAdapterRegionalConditioning:
             "start_at": [start_at],
             "end_at": [end_at],
         }
-        
+
         return (ipadapter_params, positive, negative, )
 
 class IPAdapterCombineParams:
@@ -1993,7 +1993,7 @@ class IPAdapterCombineParams:
             "params_4": ("IPADAPTER_PARAMS",),
             "params_5": ("IPADAPTER_PARAMS",),
         }}
-    
+
     RETURN_TYPES = ("IPADAPTER_PARAMS",)
     FUNCTION = "combine"
     CATEGORY = "ipadapter/params"
@@ -2031,7 +2031,7 @@ class IPAdapterCombineParams:
             ipadapter_params["end_at"] += params_5["end_at"]
 
         return (ipadapter_params, )
-    
+
 
 
 
@@ -2041,6 +2041,16 @@ class IPAdapterFrom2FaceID():
         return {
             "required": {
                 "model": ("MODEL", ),
+                "ipadapter": ("IPADAPTER", ),
+                "faceid": ("FACEID", ),
+                "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 3, "step": 0.05 }),
+                "weight_faceidv2": ("FLOAT", { "default": 1.0, "min": -1, "max": 5.0, "step": 0.05 }),
+                "weight_type": (WEIGHT_TYPES, ),
+                "combine_embeds": (["concat", "add", "subtract", "average", "norm average"],),
+                "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "embeds_scaling": (['V only', 'K+V', 'K+V w/ C penalty', 'K+mean(V) w/ C penalty'], ),
+
             },
             "optional": {
             }
@@ -2050,7 +2060,7 @@ class IPAdapterFrom2FaceID():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "fromFaceId"
 
-    def fromFaceId(self, model):
+    def fromFaceId(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
         print("\033[33mINFO: ######################### A.\033[0m")
 
         work_model = model.clone()
@@ -2152,4 +2162,3 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IPAdapterFromFaceID": "IPAdapter from FaceID",
     "IPAdapterFrom2FaceID": "IPAdapterFrom2FaceID"
 }
-
