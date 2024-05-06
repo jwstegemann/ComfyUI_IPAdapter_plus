@@ -896,7 +896,7 @@ class IPAdapterLoadFaceId:
         path = os.path.join(input_dir, faceid)
         faceId = (torch.load(path))
         print(faceId)
-        return "Hugo"
+        return { "cond": 4, "uncond": 3, "cond_alt" : 2, "img_cond_embeds": 1}
 
 
 class IPAdapterFromFaceID():
