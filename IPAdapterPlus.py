@@ -2060,7 +2060,7 @@ class IPAdapterFrom2FaceID():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "fromFaceId"
 
-    def fromFaceId(self, model, ipadapter, faceid, weight, weight_faceidv2, weight_type=, combine_embeds, start_at, end_at, embeds_scaling):
+    def fromFaceId(self, model, ipadapter, faceid, weight, weight_faceidv2, weight_type, combine_embeds, start_at, end_at, embeds_scaling):
         print("\033[33mINFO: ######################### A.\033[0m")
 
         work_model = model.clone()
