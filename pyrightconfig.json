@@ -3,5 +3,7 @@
   "pythonVersion": "3.12",
   "venvPath": ".",
   "venv": "venv",
-  "extraPaths": ["../ComfyUI/comfy"]
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "extraPaths": ["../ComfyUI"]
 }
