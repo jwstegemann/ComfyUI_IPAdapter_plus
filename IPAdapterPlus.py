@@ -887,7 +887,7 @@ class IPAdapterLoadFaceId:
     def INPUT_TYPES(s):
         return {"required": {"faceid": ("STRING", {"default": "PathToFaceID"}) } }
 
-    RETURN_TYPES = ("FACEID", )
+    RETURN_TYPES = ("HUGO", )
     FUNCTION = "load"
     CATEGORY = "ipadapter/faceid"
 
@@ -2042,6 +2042,7 @@ class IPAdapterFrom2FaceID():
             "required": {
                 "model": ("MODEL", ),
                 "ipadapter": ("IPADAPTER", ),
+                "hugo": ("HUGO", ),
             },
             "optional": {
             }
@@ -2051,7 +2052,7 @@ class IPAdapterFrom2FaceID():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "fromFaceId"
 
-    def fromFaceId(self, model, ipadapter):
+    def fromFaceId(self, model, ipadapter, hugo):
         print("\033[33mINFO: ######################### A.\033[0m")
 
         work_model = model.clone()
