@@ -896,7 +896,7 @@ class IPAdapterLoadFaceId:
         path = os.path.join(input_dir, faceid)
         faceid = torch.load(path)
         print(faceid)
-        return ({ "cond": faceid["cond"] , "uncond": faceid["uncon"], "cond_alt" : faceid["cond_alt"], "img_cond_embeds": faceid["img_cond_embeds"]"}, )
+        return ({ "cond": faceid["cond"] , "uncond": faceid["uncon"], "cond_alt" : faceid["cond_alt"], "img_cond_embeds": faceid["img_cond_embeds"]}, )
 
 
 class IPAdapterFromFaceID():
