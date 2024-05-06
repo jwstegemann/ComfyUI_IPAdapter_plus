@@ -894,7 +894,9 @@ class IPAdapterLoadFaceId:
     def load(self, faceid):
         input_dir = folder_paths.get_input_directory()
         path = os.path.join(input_dir, faceid)
-        return ({ "cond": 1, "uncond": 3, "cond_alt" : 3}, )
+        faceid = torch.load(path)
+        print(faceid)
+        return ({ "cond": faceid["cond"] , "uncond": faceid["uncon"], "cond_alt" : faceid["cond_alt"], "img_cond_embeds": faceid["img_cond_embeds"]"}, )
 
 
 class IPAdapterFromFaceID():
@@ -1150,8 +1152,6 @@ class IPAdapterFromFaceID():
         cond_alt = faceid['cond_alt'].to(device, dtype=dtype) # None
         # if img_comp_cond_embeds is not None:
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
-
-        faceid = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt} if (is_faceid or is_faceidv2) else None
 
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
@@ -2109,7 +2109,7 @@ NODE_CLASS_MAPPINGS = {
 
     # StoredFaceId
     "IPAdapterSaveFaceId": IPAdapterSaveFaceId,
-    "IPAdapterLcoadFaceId": IPAdapterLoadFaceId,
+    "IPAdapterLoadFaceId": IPAdapterLoadFaceId,
     "IPAdapterFromFaceID": IPAdapterFromFaceID,
     "IPAdapterFrom2FaceID": IPAdapterFrom2FaceID
 }
