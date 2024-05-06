@@ -2043,14 +2043,6 @@ class IPAdapterFrom2FaceID():
                 "model": ("MODEL", ),
                 "ipadapter": ("IPADAPTER", ),
                 "faceid": ("FACEID", ),
-                "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 3, "step": 0.05 }),
-                "weight_faceidv2": ("FLOAT", { "default": 1.0, "min": -1, "max": 5.0, "step": 0.05 }),
-                "weight_type": (WEIGHT_TYPES, ),
-                "combine_embeds": (["concat", "add", "subtract", "average", "norm average"],),
-                "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
-                "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
-                "embeds_scaling": (['V only', 'K+V', 'K+V w/ C penalty', 'K+mean(V) w/ C penalty'], ),
-
             },
             "optional": {
             }
@@ -2060,7 +2052,7 @@ class IPAdapterFrom2FaceID():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "fromFaceId"
 
-    def fromFaceId(self, model, ipadapter, faceid, weight, weight_faceidv2, weight_type, combine_embeds, start_at, end_at, embeds_scaling):
+    def fromFaceId(self, model, ipadapter, faceid):
         print("\033[33mINFO: ######################### A.\033[0m")
 
         work_model = model.clone()
