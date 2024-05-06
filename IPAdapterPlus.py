@@ -943,6 +943,13 @@ class IPAdapterFromFaceID():
         weight = weight
 
         work_model = model.clone()
+
+        if 'ipadapter' in ipadapter:
+            ipadapter_model = ipadapter['ipadapter']['model']
+            clip_vision = clip_vision if clip_vision is not None else ipadapter['clipvision']['model']
+        else:
+            ipadapter_model = ipadapter
+
         print("\033[33mINFO: ######################### B.\033[0m")
 
         # ipa_args = {
@@ -970,13 +977,13 @@ class IPAdapterFromFaceID():
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
 
-        is_full = "proj.3.weight" in ipadapter["image_proj"]
-        is_portrait = "proj.2.weight" in ipadapter["image_proj"] and not "proj.3.weight" in ipadapter["image_proj"] and not "0.to_q_lora.down.weight" in ipadapter["ip_adapter"]
-        is_portrait_unnorm = "portraitunnorm" in ipadapter
+        is_full = "proj.3.weight" in ipadapter_model["image_proj"]
+        is_portrait = "proj.2.weight" in ipadapter_model["image_proj"] and not "proj.3.weight" in ipadapter_model["image_proj"] and not "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"]
+        is_portrait_unnorm = "portraitunnorm" in ipadapter_model
         is_faceid = is_portrait or "0.to_q_lora.down.weight" in ipadapter["ip_adapter"] or is_portrait_unnorm
-        is_plus = (is_full or "latents" in ipadapter["image_proj"] or "perceiver_resampler.proj_in.weight" in ipadapter["image_proj"]) and not is_portrait_unnorm
-        is_faceidv2 = "faceidplusv2" in ipadapter
-        output_cross_attention_dim = ipadapter["ip_adapter"]["1.to_k_ip.weight"].shape[1]
+        is_plus = (is_full or "latents" in ipadapter_model["image_proj"] or "perceiver_resampler.proj_in.weight" in ipadapter_model["image_proj"]) and not is_portrait_unnorm
+        is_faceidv2 = "faceidplusv2" in ipadapter_model
+        output_cross_attention_dim = ipadapter_model["ip_adapter"]["1.to_k_ip.weight"].shape[1]
 
         weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
 
@@ -1133,7 +1140,7 @@ class IPAdapterFromFaceID():
 
 
         ipa = IPAdapter(
-            ipadapter,
+            ipadapter_model,
             cross_attention_dim=cross_attention_dim,
             output_cross_attention_dim=output_cross_attention_dim,
             clip_embeddings_dim=img_cond_embeds.shape[-1],
@@ -1194,7 +1201,7 @@ class IPAdapterFromFaceID():
                 set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
                 patch_kwargs["number"] += 1
 
-        del ipadapter
+        del ipadapter_model
 
         print("\033[33mINFO: ######################### E.\033[0m")
 
