@@ -887,7 +887,7 @@ class IPAdapterLoadFaceId:
     def INPUT_TYPES(s):
         return {"required": {"faceid": ("STRING", {"default": "PathToFaceID"}) } }
 
-    RETURN_TYPES = ("HUGO", )
+    RETURN_TYPES = ("FACEID", )
     FUNCTION = "load"
     CATEGORY = "ipadapter/faceid"
 
