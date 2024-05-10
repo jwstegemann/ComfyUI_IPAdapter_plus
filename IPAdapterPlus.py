@@ -31,6 +31,8 @@ from .utils import (
     get_lora_file,
 )
 
+import time
+
 # set the models directory
 if "ipadapter" not in folder_paths.folder_names_and_paths:
     current_paths = [os.path.join(folder_paths.models_dir, "ipadapter")]
@@ -925,6 +927,8 @@ class IPAdapterFromFaceID():
     def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
+        start_time = time.time()
+
         if 'ipadapter' in ipadapter:
             ipadapter_model = ipadapter['ipadapter']['model']
             clip_vision = clip_vision if clip_vision is not None else ipadapter['clipvision']['model']
@@ -968,6 +972,8 @@ class IPAdapterFromFaceID():
 
         img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype) if faceid['img_cond_embeds'] is not None else None
 
+        print("1 #### ", ((time.time() - start_time) * 1000), "ms.")
+
         ipa = IPAdapter(
             ipadapter_model,
             cross_attention_dim=cross_attention_dim,
@@ -991,6 +997,9 @@ class IPAdapterFromFaceID():
 
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
+
+
+        print("2 #### ", ((time.time() - start_time) * 1000), "ms.")
 
         patch_kwargs = {
             "ipadapter": ipa,
@@ -1031,6 +1040,7 @@ class IPAdapterFromFaceID():
 
         del ipadapter_model
 
+        print("end #### ", ((time.time() - start_time) * 1000), "ms.")
         return (work_model, None)
 
 
