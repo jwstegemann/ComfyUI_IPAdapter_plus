@@ -930,17 +930,18 @@ class IPAdapterFromFaceID():
         start_time = time.time()
 
         if 'ipadapter' in ipadapter:
+            print("### in A")
             ipadapter_model = ipadapter['ipadapter']['model']
             clip_vision = clip_vision if clip_vision is not None else ipadapter['clipvision']['model']
         else:
+            print("### in B")
             ipadapter_model = ipadapter
 
         if clip_vision is None:
+            print("### in C")
             raise Exception("Missing CLIPVision model.")
 
         weight = weight
-
-        work_model = model.clone()
 
         if 'ipadapter' in ipadapter:
             ipadapter_model = ipadapter['ipadapter']['model']
@@ -955,24 +956,32 @@ class IPAdapterFromFaceID():
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
 
         is_full = "proj.3.weight" in ipadapter_model["image_proj"]
+        print("is_full:", is_full)
         is_portrait = "proj.2.weight" in ipadapter_model["image_proj"] and not "proj.3.weight" in ipadapter_model["image_proj"] and not "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"]
+        print("is_porrait:", is_full)
         is_portrait_unnorm = "portraitunnorm" in ipadapter_model
-        is_faceid = is_portrait or "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"] or is_portrait_unnorm
+        print("portrait_unnorm:", is_portrait_unnorm)
+        is_faceid, = is_portrait or "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"] or is_portrait_unnorm
+        print("is_faceid:", is_faceid)
         is_plus = (is_full or "latents" in ipadapter_model["image_proj"] or "perceiver_resampler.proj_in.weight" in ipadapter_model["image_proj"]) and not is_portrait_unnorm
+        print("is_plus:", is_plus)
         is_faceidv2 = "faceidplusv2" in ipadapter_model
+        print("is_faceidv2:", is_faceidv2)
         output_cross_attention_dim = ipadapter_model["ip_adapter"]["1.to_k_ip.weight"].shape[1]
+        print("output_cross_attention_dim", output_cross_attention_dim)
 
         weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
 
         cross_attention_dim = 1280 if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
         clip_extra_context_tokens = 16 if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
 
-        if attn_mask is not None:
-            attn_mask = attn_mask.to(device, dtype=dtype)
+
+
+        print("before faceid #### ", ((time.time() - start_time) * 1000), "ms.")
 
         img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype) if faceid['img_cond_embeds'] is not None else None
 
-        print("1 #### ", ((time.time() - start_time) * 1000), "ms.")
+        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
         ipa = IPAdapter(
             ipadapter_model,
@@ -987,6 +996,9 @@ class IPAdapterFromFaceID():
             is_portrait_unnorm=is_portrait_unnorm,
         ).to(device, dtype=dtype)
 
+        print("after ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+
+
         cond = faceid['cond'].to(device, dtype=dtype) if faceid['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
         uncond = faceid['uncond'].to(device, dtype=dtype) if faceid['uncond'] is not None else None # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
@@ -995,11 +1007,19 @@ class IPAdapterFromFaceID():
         # if img_comp_cond_embeds is not None:
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
+
+        print("before mordel  #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        work_model = model.clone()
+
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
 
 
-        print("2 #### ", ((time.time() - start_time) * 1000), "ms.")
+        print("before attn mask #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        if attn_mask is not None:
+            attn_mask = attn_mask.to(device, dtype=dtype)
 
         patch_kwargs = {
             "ipadapter": ipa,
@@ -1015,6 +1035,7 @@ class IPAdapterFromFaceID():
             "unfold_batch": False,
             "embeds_scaling": embeds_scaling,
         }
+
 
         if not is_sdxl:
             for id in [1,2,4,5,7,8]: # id of input_blocks that have cross attention
@@ -1040,7 +1061,7 @@ class IPAdapterFromFaceID():
 
         del ipadapter_model
 
-        print("end #### ", ((time.time() - start_time) * 1000), "ms.")
+        print(" #### ", ((time.time() - start_time) * 1000), "ms.")
         return (work_model, None)
 
 
