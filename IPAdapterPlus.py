@@ -961,7 +961,7 @@ class IPAdapterFromFaceID():
         print("is_porrait:", is_full)
         is_portrait_unnorm = "portraitunnorm" in ipadapter_model
         print("portrait_unnorm:", is_portrait_unnorm)
-        is_faceid, = is_portrait or "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"] or is_portrait_unnorm
+        is_faceid = is_portrait or "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"] or is_portrait_unnorm
         print("is_faceid:", is_faceid)
         is_plus = (is_full or "latents" in ipadapter_model["image_proj"] or "perceiver_resampler.proj_in.weight" in ipadapter_model["image_proj"]) and not is_portrait_unnorm
         print("is_plus:", is_plus)
