@@ -897,6 +897,169 @@ class IPAdapterLoadFaceId:
         return ({ "cond": faceid["cond"] , "uncond": faceid["uncond"], "cond_alt" : faceid["cond_alt"], "img_cond_embeds": faceid["img_cond_embeds"]}, )
 
 
+class FaceIDv2IPAdapterXL():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "ipadapter": ("IPADAPTER", ),
+                "faceid": ("FACEID", ),
+            },
+            "optional": {
+            }
+        }
+
+    CATEGORY = "ipadapter/faceid"
+    RETURN_TYPES = ("IPADAPTERINSTANCE", )
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, ipadapter, faceid):
+        is_sdxl = True
+
+        start_time = time.time()
+        ipadapter_model = ipadapter['ipadapter']['model']
+
+        # from execute
+        device = model_management.get_torch_device()
+        dtype = model_management.unet_dtype()
+        if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
+            dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
+        output_cross_attention_dim = ipadapter_model["ip_adapter"]["1.to_k_ip.weight"].shape[1]
+
+        is_full = False
+        is_portrait = False
+        is_portrait_unnorm = False
+        is_faceid =  True
+        is_plus = True
+        is_faceidv2 = True
+
+        cross_attention_dim = 1280 if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
+        clip_extra_context_tokens = 16 if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
+
+        print("before faceid #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype) if faceid['img_cond_embeds'] is not None else None
+
+        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        ipa = IPAdapter(
+            ipadapter_model,
+            cross_attention_dim=cross_attention_dim,
+            output_cross_attention_dim=output_cross_attention_dim,
+            clip_embeddings_dim=img_cond_embeds.shape[-1],
+            clip_extra_context_tokens=clip_extra_context_tokens,
+            is_sdxl=is_sdxl,
+            is_plus=is_plus,
+            is_full=is_full,
+            is_faceid=is_faceid,
+            is_portrait_unnorm=is_portrait_unnorm,
+        ).to(device, dtype=dtype)
+
+        print("after ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        return (ipa, )
+
+
+class ApplyFaceIDv2XL():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": ("MODEL", ),
+                "ipadapterinstance": ("IPADAPTERINSTANCE", ),
+                "faceid": ("FACEID", ),
+                "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 3, "step": 0.05 }),
+                "weight_faceidv2": ("FLOAT", { "default": 1.0, "min": -1, "max": 5.0, "step": 0.05 }),
+                "weight_type": (WEIGHT_TYPES, ),
+                "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "embeds_scaling": (['V only', 'K+V', 'K+V w/ C penalty', 'K+mean(V) w/ C penalty'], ),
+            },
+            "optional": {
+                "attn_mask": ("MASK",),
+            }
+        }
+
+    CATEGORY = "ipadapter/faceid"
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, model, ipadapterinstance, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+        is_sdxl = True
+
+        start_time = time.time()
+
+        # from execute
+        device = model_management.get_torch_device()
+        dtype = model_management.unet_dtype()
+        if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
+            dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
+
+        weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
+
+        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        cond = faceid['cond'].to(device, dtype=dtype) if faceid['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
+        # TODO: check if noise helps with the uncond face embeds
+        uncond = faceid['uncond'].to(device, dtype=dtype) if faceid['uncond'] is not None else None # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
+
+        cond_alt = faceid['cond_alt'].to(device, dtype=dtype) if faceid['cond_alt'] is not None else None # None
+        # if img_comp_cond_embeds is not None:
+        #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
+
+
+        work_model = model.clone()
+
+        sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
+        sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
+
+        print("before attn mask #### ", ((time.time() - start_time) * 1000), "ms.")
+
+        if attn_mask is not None:
+            attn_mask = attn_mask.to(device, dtype=dtype)
+
+        patch_kwargs = {
+            "ipadapter": ipadapterinstance,
+            "number": 0,
+            "weight": weight,
+            "cond": cond,
+            "cond_alt": cond_alt,
+            "uncond": uncond,
+            "weight_type": weight_type,
+            "mask": attn_mask,
+            "sigma_start": sigma_start,
+            "sigma_end": sigma_end,
+            "unfold_batch": False,
+            "embeds_scaling": embeds_scaling,
+        }
+
+
+        if not is_sdxl:
+            for id in [1,2,4,5,7,8]: # id of input_blocks that have cross attention
+                set_model_patch_replace(work_model, patch_kwargs, ("input", id))
+                patch_kwargs["number"] += 1
+            for id in [3,4,5,6,7,8,9,10,11]: # id of output_blocks that have cross attention
+                set_model_patch_replace(work_model, patch_kwargs, ("output", id))
+                patch_kwargs["number"] += 1
+            set_model_patch_replace(work_model, patch_kwargs, ("middle", 0))
+        else:
+            for id in [4,5,7,8]: # id of input_blocks that have cross attention
+                block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
+                for index in block_indices:
+                    set_model_patch_replace(work_model, patch_kwargs, ("input", id, index))
+                    patch_kwargs["number"] += 1
+            for id in range(6): # id of output_blocks that have cross attention
+                block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
+                for index in block_indices:
+                    set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
+                    patch_kwargs["number"] += 1
+            for index in range(10):
+                patch_kwargs["number"] += 1
+
+        print(" #### ", ((time.time() - start_time) * 1000), "ms.")
+        return (work_model, )
+
+
 class IPAdapterFromFaceID():
     @classmethod
     def INPUT_TYPES(s):
@@ -1897,39 +2060,6 @@ class IPAdapterCombineParams:
         return (ipadapter_params, )
 
 
-
-
-class IPAdapterFrom2FaceID():
-    @classmethod
-    def INPUT_TYPES(s):
-        return {
-            "required": {
-                "model": ("MODEL", ),
-                "ipadapter": ("IPADAPTER", ),
-                "hugo": ("HUGO", ),
-            },
-            "optional": {
-            }
-        }
-
-    CATEGORY = "ipadapter/faceid"
-    RETURN_TYPES = ("MODEL",)
-    FUNCTION = "fromFaceId"
-
-    def fromFaceId(self, model, ipadapter, hugo):
-        print("\033[33mINFO: ######################### A.\033[0m")
-
-        print(hugo);
-
-        work_model = model.clone()
-        print("\033[33mINFO: ######################### B.\033[0m")
-
-        return (work_model, None)
-
-
-
-
-
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Register
@@ -1975,7 +2105,8 @@ NODE_CLASS_MAPPINGS = {
     "IPAdapterSaveFaceId": IPAdapterSaveFaceId,
     "IPAdapterLoadFaceId": IPAdapterLoadFaceId,
     "IPAdapterFromFaceID": IPAdapterFromFaceID,
-    "IPAdapterFrom2FaceID": IPAdapterFrom2FaceID
+    "ApplyFaceIDv2XL": ApplyFaceIDv2XL, 
+    "FaceIDv2IPAdapterXL": FaceIDv2IPAdapterXL,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -2018,5 +2149,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IPAdapterSaveFaceId": "IPAdapter Save FaceId",
     "IPAdapterLoadFaceId": "IPAdapter Load FaceId",
     "IPAdapterFromFaceID": "IPAdapter from FaceID",
-    "IPAdapterFrom2FaceID": "IPAdapterFrom2FaceID"
+    "ApplyFaceIDv2XL": "Apply IP-Adapter-Instance",
+    "FaceIDv2IPAdapterXL": "Build IPAdapter-Instance from FaceID",
+
 }
