@@ -936,11 +936,11 @@ class FaceIDv2IPAdapterXL():
         cross_attention_dim = 1280 if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
         clip_extra_context_tokens = 16 if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
 
-        print("before faceid #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before faceid #### ", ((time.time() - start_time) * 1000), "ms.")
 
         img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype) if faceid['img_cond_embeds'] is not None else None
 
-        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
         ipa = IPAdapter(
             ipadapter_model,
@@ -955,7 +955,7 @@ class FaceIDv2IPAdapterXL():
             is_portrait_unnorm=is_portrait_unnorm,
         ).to(device, dtype=dtype)
 
-        print("after ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("after ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
         return (ipa, )
 
@@ -987,7 +987,7 @@ class ApplyFaceIDv2XL():
     def apply_ipadapter(self, model, ipadapterinstance, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         is_sdxl = True
 
-        start_time = time.time()
+#        start_time = time.time()
 
         # from execute
         device = model_management.get_torch_device()
@@ -997,7 +997,7 @@ class ApplyFaceIDv2XL():
 
         weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
 
-        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
         cond = faceid['cond'].to(device, dtype=dtype) if faceid['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
@@ -1013,7 +1013,7 @@ class ApplyFaceIDv2XL():
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
 
-        print("before attn mask #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before attn mask #### ", ((time.time() - start_time) * 1000), "ms.")
 
         if attn_mask is not None:
             attn_mask = attn_mask.to(device, dtype=dtype)
@@ -1056,7 +1056,7 @@ class ApplyFaceIDv2XL():
             for index in range(10):
                 patch_kwargs["number"] += 1
 
-        print(" #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print(" #### ", ((time.time() - start_time) * 1000), "ms.")
         return (work_model, )
 
 
@@ -1090,18 +1090,18 @@ class IPAdapterFromFaceID():
     def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
-        start_time = time.time()
+#        start_time = time.time()
 
         if 'ipadapter' in ipadapter:
-            print("### in A")
+#            print("### in A")
             ipadapter_model = ipadapter['ipadapter']['model']
             clip_vision = clip_vision if clip_vision is not None else ipadapter['clipvision']['model']
         else:
-            print("### in B")
+ #           print("### in B")
             ipadapter_model = ipadapter
 
         if clip_vision is None:
-            print("### in C")
+#            print("### in C")
             raise Exception("Missing CLIPVision model.")
 
         weight = weight
@@ -1119,19 +1119,19 @@ class IPAdapterFromFaceID():
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
 
         is_full = "proj.3.weight" in ipadapter_model["image_proj"]
-        print("is_full:", is_full)
+#        print("is_full:", is_full)
         is_portrait = "proj.2.weight" in ipadapter_model["image_proj"] and not "proj.3.weight" in ipadapter_model["image_proj"] and not "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"]
-        print("is_porrait:", is_full)
+#        print("is_porrait:", is_full)
         is_portrait_unnorm = "portraitunnorm" in ipadapter_model
-        print("portrait_unnorm:", is_portrait_unnorm)
+#        print("portrait_unnorm:", is_portrait_unnorm)
         is_faceid = is_portrait or "0.to_q_lora.down.weight" in ipadapter_model["ip_adapter"] or is_portrait_unnorm
-        print("is_faceid:", is_faceid)
+#        print("is_faceid:", is_faceid)
         is_plus = (is_full or "latents" in ipadapter_model["image_proj"] or "perceiver_resampler.proj_in.weight" in ipadapter_model["image_proj"]) and not is_portrait_unnorm
-        print("is_plus:", is_plus)
+#        print("is_plus:", is_plus)
         is_faceidv2 = "faceidplusv2" in ipadapter_model
-        print("is_faceidv2:", is_faceidv2)
+#        print("is_faceidv2:", is_faceidv2)
         output_cross_attention_dim = ipadapter_model["ip_adapter"]["1.to_k_ip.weight"].shape[1]
-        print("output_cross_attention_dim", output_cross_attention_dim)
+#        print("output_cross_attention_dim", output_cross_attention_dim)
 
         weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
 
@@ -1140,11 +1140,11 @@ class IPAdapterFromFaceID():
 
 
 
-        print("before faceid #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before faceid #### ", ((time.time() - start_time) * 1000), "ms.")
 
         img_cond_embeds = faceid['img_cond_embeds'].to(device, dtype=dtype) if faceid['img_cond_embeds'] is not None else None
 
-        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
         ipa = IPAdapter(
             ipadapter_model,
@@ -1159,7 +1159,7 @@ class IPAdapterFromFaceID():
             is_portrait_unnorm=is_portrait_unnorm,
         ).to(device, dtype=dtype)
 
-        print("after ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("after ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
 
         cond = faceid['cond'].to(device, dtype=dtype) if faceid['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
@@ -1171,7 +1171,7 @@ class IPAdapterFromFaceID():
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
 
-        print("before mordel  #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before mordel  #### ", ((time.time() - start_time) * 1000), "ms.")
 
         work_model = model.clone()
 
@@ -1179,7 +1179,7 @@ class IPAdapterFromFaceID():
         sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
 
 
-        print("before attn mask #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print("before attn mask #### ", ((time.time() - start_time) * 1000), "ms.")
 
         if attn_mask is not None:
             attn_mask = attn_mask.to(device, dtype=dtype)
@@ -1224,7 +1224,7 @@ class IPAdapterFromFaceID():
 
         del ipadapter_model
 
-        print(" #### ", ((time.time() - start_time) * 1000), "ms.")
+#        print(" #### ", ((time.time() - start_time) * 1000), "ms.")
         return (work_model, None)
 
 
