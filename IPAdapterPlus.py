@@ -238,9 +238,19 @@ def ipadapter_execute(model,
             for size in [(size, size) for size in range(640, 256, -64)]:
                 insightface.det_model.input_size = size # TODO: hacky but seems to be working
                 face = insightface.get(image_iface[i])
+                try:
+                    ga = insightface.get_ga(image_iface[i])
+                    print("ga: ", ga)
+                    feature = insightface.get_feature(image_iface[i])
+                    print("feature: ", feature)
+                except Exception as e:
+                    print("error: ", e)
                 if face:
                     if not is_portrait_unnorm:
                         face_cond_embeds.append(torch.from_numpy(face[0].normed_embedding).unsqueeze(0))
+                        attributes = dir(face[0])
+                        for a in attributes:
+                            print(a, " -> ", getattr(face[0],a)                        
                     else:
                         face_cond_embeds.append(torch.from_numpy(face[0].embedding).unsqueeze(0))
                     image.append(image_to_tensor(face_align.norm_crop(image_iface[i], landmark=face[0].kps, image_size=256 if is_sdxl else 224)))
