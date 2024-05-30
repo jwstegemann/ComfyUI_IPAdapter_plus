@@ -244,9 +244,9 @@ def ipadapter_execute(model,
                         print("content: ", dir(face[0]))
                         try:
                             feature = face[0].items()
-                            print("feature: ", dir(feature))
+                            print("feature: ", feature)
                             feature2 = face[0].keys()
-                            print("feature2: ", dir(feature2))
+                            print("feature2: ", feature2)
                         except Exception as e:
                             print("error: ", e)
                     else:
