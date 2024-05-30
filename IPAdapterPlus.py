@@ -240,9 +240,9 @@ def ipadapter_execute(model,
                 face = insightface.get(image_iface[i])
                 try:
                     ga = insightface.get_ga(image_iface[i])
-                    print("ga: ", ga)
+                    print("ga: ", dir(ga))
                     feature = insightface.get_feature(image_iface[i])
-                    print("feature: ", feature)
+                    print("feature: ", dir(feature))
                 except Exception as e:
                     print("error: ", e)
                 if face:
