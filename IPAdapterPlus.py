@@ -250,7 +250,7 @@ def ipadapter_execute(model,
                         face_cond_embeds.append(torch.from_numpy(face[0].normed_embedding).unsqueeze(0))
                         attributes = dir(face[0])
                         for a in attributes:
-                            print(a, " -> ", getattr(face[0],a)                        
+                            print(a, " -> ", getattr(face[0],a))                        
                     else:
                         face_cond_embeds.append(torch.from_numpy(face[0].embedding).unsqueeze(0))
                     image.append(image_to_tensor(face_align.norm_crop(image_iface[i], landmark=face[0].kps, image_size=256 if is_sdxl else 224)))
