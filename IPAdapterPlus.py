@@ -241,14 +241,14 @@ def ipadapter_execute(model,
                 if face:
                     if not is_portrait_unnorm:
                         face_cond_embeds.append(torch.from_numpy(face[0].normed_embedding).unsqueeze(0))
-                        print("content: ", dir(face[0]))
-                        try:
-                            feature = face[0].items()
-                            print("feature: ", feature)
-                            feature2 = face[0].keys()
-                            print("feature2: ", feature2)
-                        except Exception as e:
-                            print("error: ", e)
+                        # print("content: ", dir(face[0]))
+                        # try:
+                        #     feature = face[0].items()
+                        #     print("feature: ", feature)
+                        #     feature2 = face[0].keys()
+                        #     print("feature2: ", feature2)
+                        # except Exception as e:
+                        #     print("error: ", e)
                     else:
                         face_cond_embeds.append(torch.from_numpy(face[0].embedding).unsqueeze(0))
                     image.append(image_to_tensor(face_align.norm_crop(image_iface[i], landmark=face[0].kps, image_size=256 if is_sdxl else 224)))
