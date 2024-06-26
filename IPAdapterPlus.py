@@ -182,6 +182,14 @@ def ipadapter_execute(model,
     output_cross_attention_dim = ipadapter["ip_adapter"]["1.to_k_ip.weight"].shape[1]
     is_sdxl = output_cross_attention_dim == 2048
 
+    print("is_full:", is_full)
+    print("is_portrait:", is_portrait)
+    print("is_portrait_unnorm:", is_portrait_unnorm)
+    print("is_faceid:", is_faceid)
+    print("is_plus:", is_plus)
+    print("is_faceidv2:", is_faceidv2)
+    print("is_sdxl:", is_sdxl)
+
     if is_faceid and not insightface:
         raise Exception("insightface model is required for FaceID models")
 
@@ -369,6 +377,7 @@ def ipadapter_execute(model,
         cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
     faceid = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt, "img_cond_embeds": img_cond_embeds} if (is_faceid or is_faceidv2) else None
+    embeds = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt, "img_cond_embeds": img_cond_embeds} if (not is_faceid and is_full) else None
 
     del img_cond_embeds, img_uncond_embeds, img_comp_cond_embeds, face_cond_embeds
 
@@ -413,7 +422,7 @@ def ipadapter_execute(model,
             set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
             patch_kwargs["number"] += 1
 
-    return (model, image, faceid)
+    return (model, image, faceid, embeds)
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -688,7 +697,8 @@ class IPAdapterAdvanced:
             }
         }
 
-    RETURN_TYPES = ("MODEL",)
+    RETURN_TYPES = ("MODEL", "EMBEDS")
+
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
 
@@ -752,7 +762,7 @@ class IPAdapterAdvanced:
                 "encode_batch_size": encode_batch_size,
             }
 
-            work_model, face_image, faceid = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
+            work_model, face_image, faceid, embeds = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
 
         del ipadapter
         return (work_model, face_image, faceid)
@@ -2115,6 +2125,11 @@ NODE_CLASS_MAPPINGS = {
     "IPAdapterFromFaceID": IPAdapterFromFaceID,
     "ApplyFaceIDv2XL": ApplyFaceIDv2XL, 
     "FaceIDv2IPAdapterXL": FaceIDv2IPAdapterXL,
+
+    # Comics
+    "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
+    "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
+
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -2153,11 +2168,15 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IPAdapterRegionalConditioning": "IPAdapter Regional Conditioning",
     "IPAdapterCombineParams": "IPAdapter Combine Params",
 
-        # StoredFaceId
+    # StoredFaceId
     "IPAdapterSaveFaceId": "IPAdapter Save FaceId",
     "IPAdapterLoadFaceId": "IPAdapter Load FaceId",
     "IPAdapterFromFaceID": "IPAdapter from FaceID",
     "ApplyFaceIDv2XL": "Apply IP-Adapter-Instance",
     "FaceIDv2IPAdapterXL": "Build IPAdapter-Instance from FaceID",
+
+    # Comics
+    "ApplyFacePlusIPAdapter": "FacePlus IPAdapter from Embeds", 
+    "FacePlusIPAdapterFromEmbeds": "Apply FacePlus IPAdapter",
 
 }
