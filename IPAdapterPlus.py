@@ -981,6 +981,7 @@ class ApplyFacePlusIPAdapter():
             "required": {
                 "model": ("MODEL", ),
                 "ipadapterinstance": ("IPADAPTERINSTANCE", ),
+                "embeds": ("EMBEDS", ),
                 "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 5, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
@@ -996,7 +997,7 @@ class ApplyFacePlusIPAdapter():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, model, ipadapterinstance, weight=1.0, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight=1.0, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         is_sdxl = True
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
