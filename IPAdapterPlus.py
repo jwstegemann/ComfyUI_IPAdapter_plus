@@ -915,6 +915,57 @@ class IPAdapterLoadFaceId:
         return ({ "cond": faceid["cond"] , "uncond": faceid["uncond"], "cond_alt" : faceid["cond_alt"], "img_cond_embeds": faceid["img_cond_embeds"]}, )
 
 
+# comics
+
+class ApplyFacePlusIPAdapter():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "ipadapter": ("IPADAPTER", ),
+                "embeds": ("EMBEDS", ),
+            },
+            "optional": {
+            }
+        }
+
+    CATEGORY = "ipadapter/plus"
+    RETURN_TYPES = ("IPADAPTERINSTANCE", )
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, ipadapter, embeds):
+        is_sdxl = True
+
+
+class ApplyFacePlusIPAdapter():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": ("MODEL", ),
+                "ipadapterinstance": ("IPADAPTERINSTANCE", ),
+                "embeds": ("FACEID", ),
+                "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 3, "step": 0.05 }),
+                "weight_faceidv2": ("FLOAT", { "default": 1.0, "min": -1, "max": 5.0, "step": 0.05 }),
+                "weight_type": (WEIGHT_TYPES, ),
+                "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "embeds_scaling": (['V only', 'K+V', 'K+V w/ C penalty', 'K+mean(V) w/ C penalty'], ),
+            },
+            "optional": {
+                "attn_mask": ("MASK",),
+            }
+        }
+
+    CATEGORY = "ipadapter/plus"
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, model, ipadapterinstance, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+        is_sdxl = True
+
+
+
 class FaceIDv2IPAdapterXL():
     @classmethod
     def INPUT_TYPES(s):
@@ -2128,7 +2179,7 @@ NODE_CLASS_MAPPINGS = {
 
     # Comics
     "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
-    "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
+    "FacePlusIPAdapterFromEmbeds": ApplyFacePlusIPAdapter,
 
 }
 
