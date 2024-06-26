@@ -768,7 +768,10 @@ class IPAdapterAdvanced:
             work_model, face_image, faceid, embeds = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
 
         del ipadapter
-        return (work_model, face_image, faceid)
+
+        print("out embeds: ", embeds)
+
+        return (work_model, embeds)
 
 class IPAdapterBatch(IPAdapterAdvanced):
     def __init__(self):
@@ -937,6 +940,8 @@ class FacePlusIPAdapterFromEmbeds():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, ipadapter, embeds):
+        print("in embeds: ", embeds)
+
         if ipadapter is None:
             raise Exception("Missing IPAdapter model.")
         
@@ -974,7 +979,6 @@ class ApplyFacePlusIPAdapter():
             "required": {
                 "model": ("MODEL", ),
                 "ipadapterinstance": ("IPADAPTERINSTANCE", ),
-                "embeds": ("EMBEDS", ),
                 "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 5, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
