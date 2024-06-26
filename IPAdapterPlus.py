@@ -2314,7 +2314,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FaceIDv2IPAdapterXL": "Build IPAdapter-Instance from FaceID",
 
     # Comics
-    "ApplyFacePlusIPAdapter": "FacePlus IPAdapter from Embeds", 
-    "FacePlusIPAdapterFromEmbeds": "Apply FacePlus IPAdapter",
+    "ApplyFacePlusIPAdapter": "Apply FacePlus IPAdapter", 
+    "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
 
 }
