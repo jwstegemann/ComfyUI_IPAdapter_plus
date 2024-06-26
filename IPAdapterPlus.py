@@ -379,7 +379,7 @@ def ipadapter_execute(model,
         cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
     faceid = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt, "img_cond_embeds": img_cond_embeds} if (is_faceid or is_faceidv2) else None
-    embeds = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt, "img_cond_embeds": img_cond_embeds} if (not is_faceid and is_full) else None
+    embeds = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt, "img_cond_embeds": img_cond_embeds}
 
     del img_cond_embeds, img_uncond_embeds, img_comp_cond_embeds, face_cond_embeds
 
@@ -423,6 +423,8 @@ def ipadapter_execute(model,
         for index in range(10):
             set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
             patch_kwargs["number"] += 1
+
+    print("out2", embeds)
 
     return (model, image, faceid, embeds)
 
