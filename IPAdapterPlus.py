@@ -182,13 +182,13 @@ def ipadapter_execute(model,
     output_cross_attention_dim = ipadapter["ip_adapter"]["1.to_k_ip.weight"].shape[1]
     is_sdxl = output_cross_attention_dim == 2048
 
-    print("is_full:", is_full)
-    print("is_portrait:", is_portrait)
-    print("is_portrait_unnorm:", is_portrait_unnorm)
-    print("is_faceid:", is_faceid)
-    print("is_plus:", is_plus)
-    print("is_faceidv2:", is_faceidv2)
-    print("is_sdxl:", is_sdxl)
+    # print("is_full:", is_full)
+    # print("is_portrait:", is_portrait)
+    # print("is_portrait_unnorm:", is_portrait_unnorm)
+    # print("is_faceid:", is_faceid)
+    # print("is_plus:", is_plus)
+    # print("is_faceidv2:", is_faceidv2)
+    # print("is_sdxl:", is_sdxl)
 
     if is_faceid and not insightface:
         raise Exception("insightface model is required for FaceID models")
@@ -314,7 +314,7 @@ def ipadapter_execute(model,
     if img_comp_cond_embeds is not None:
         img_comp_cond_embeds = img_comp_cond_embeds.to(device, dtype=dtype)
 
-    print("img_cond_embeds.shape[0]", img_cond_embeds.shape[0])
+    # print("img_cond_embeds.shape[0]", img_cond_embeds.shape[0])
 
     # combine the embeddings if needed
     if combine_embeds != "concat" and img_cond_embeds.shape[0] > 1 and not unfold_batch:
@@ -424,7 +424,7 @@ def ipadapter_execute(model,
             set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
             patch_kwargs["number"] += 1
 
-    print("out2", embeds)
+    # print("out2", embeds)
 
     return (model, image, faceid, embeds)
 
@@ -744,7 +744,7 @@ class IPAdapterAdvanced:
         work_model = model.clone()
 
         for i in range(len(image)):
-            print(" ### handling image: ", i)
+            # print(" ### handling image: ", i)
             if image[i] is None:
                 continue
 
@@ -771,7 +771,7 @@ class IPAdapterAdvanced:
 
         del ipadapter
 
-        print("out embeds: ", embeds)
+        # print("out embeds: ", embeds)
 
         return (work_model, embeds)
 
@@ -942,7 +942,7 @@ class FacePlusIPAdapterFromEmbeds():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, ipadapter, embeds):
-        print("in embeds: ", embeds)
+        # print("in embeds: ", embeds)
 
         if ipadapter is None:
             raise Exception("Missing IPAdapter model.")
@@ -996,7 +996,7 @@ class ApplyFacePlusIPAdapter():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight=1.0, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+    def apply_ipadapter(self, model, ipadapterinstance, weight=1.0, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         is_sdxl = True
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
