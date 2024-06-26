@@ -920,7 +920,7 @@ class IPAdapterLoadFaceId:
 
 # comics
 
-class ApplyFacePlusIPAdapter():
+class FacePlusIPAdapterFromEmbeds():
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -937,7 +937,34 @@ class ApplyFacePlusIPAdapter():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, ipadapter, embeds):
-        is_sdxl = True
+        if ipadapter is None:
+            raise Exception("Missing IPAdapter model.")
+        
+        device = model_management.get_torch_device()
+        dtype = model_management.unet_dtype()
+        if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
+            dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
+
+        output_cross_attention_dim = ipadapter["ip_adapter"]["1.to_k_ip.weight"].shape[1]
+        cross_attention_dim = 1280 # if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
+        clip_extra_context_tokens = 16 # if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
+
+        img_cond_embeds = embeds['img_cond_embeds'].to(device, dtype=dtype)
+
+        ipa = IPAdapter(
+            ipadapter,
+            cross_attention_dim=cross_attention_dim,
+            output_cross_attention_dim=output_cross_attention_dim,
+            clip_embeddings_dim=img_cond_embeds.shape[-1],
+            clip_extra_context_tokens=clip_extra_context_tokens,
+            is_sdxl=True,
+            is_plus=True,
+            is_full=False,
+            is_faceid=False,
+            is_portrait_unnorm=False,
+        ).to(device, dtype=dtype)
+
+        return (ipa, )
 
 
 class ApplyFacePlusIPAdapter():
@@ -947,9 +974,8 @@ class ApplyFacePlusIPAdapter():
             "required": {
                 "model": ("MODEL", ),
                 "ipadapterinstance": ("IPADAPTERINSTANCE", ),
-                "embeds": ("FACEID", ),
-                "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 3, "step": 0.05 }),
-                "weight_faceidv2": ("FLOAT", { "default": 1.0, "min": -1, "max": 5.0, "step": 0.05 }),
+                "embeds": ("EMBEDS", ),
+                "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 5, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
                 "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
@@ -964,9 +990,67 @@ class ApplyFacePlusIPAdapter():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, model, ipadapterinstance, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight=1.0, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         is_sdxl = True
+        device = model_management.get_torch_device()
+        dtype = model_management.unet_dtype()
+        if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
+            dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
 
+        if isinstance(weight, list):
+            weight = weight[0]
+
+        if attn_mask is not None:
+            attn_mask = attn_mask.to(device, dtype=dtype)
+
+        cond = embeds['cond'].to(device, dtype=dtype) if embeds['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
+        # TODO: check if noise helps with the uncond face embeds
+        uncond = embeds['uncond'].to(device, dtype=dtype) if embeds['uncond'] is not None else None # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
+
+        cond_alt = embeds['cond_alt'].to(device, dtype=dtype) if embeds['cond_alt'] is not None else None # None
+        # if img_comp_cond_embeds is not None:
+        #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
+
+        work_model = model.clone()
+
+        sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
+        sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
+
+        patch_kwargs = {
+            "ipadapter": ipadapterinstance,
+            "number": 0,
+            "weight": weight,
+            "cond": cond,
+            "cond_alt": cond_alt,
+            "uncond": uncond,
+            "weight_type": weight_type,
+            "mask": attn_mask,
+            "sigma_start": sigma_start,
+            "sigma_end": sigma_end,
+            "unfold_batch": False,
+            "embeds_scaling": embeds_scaling,
+        }
+
+        for id in [4,5,7,8]: # id of input_blocks that have cross attention
+            block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
+            for index in block_indices:
+                set_model_patch_replace(work_model, patch_kwargs, ("input", id, index))
+                patch_kwargs["number"] += 1
+        for id in range(6): # id of output_blocks that have cross attention
+            block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
+            for index in block_indices:
+                set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
+                patch_kwargs["number"] += 1
+        for index in range(10):
+            set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
+            patch_kwargs["number"] += 1
+
+        return (work_model, )
+
+
+#
+# FaceID
+#
 
 
 class FaceIDv2IPAdapterXL():
@@ -2182,7 +2266,7 @@ NODE_CLASS_MAPPINGS = {
 
     # Comics
     "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
-    "FacePlusIPAdapterFromEmbeds": ApplyFacePlusIPAdapter,
+    "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
 
 }
 
