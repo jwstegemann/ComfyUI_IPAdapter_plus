@@ -314,6 +314,8 @@ def ipadapter_execute(model,
     if img_comp_cond_embeds is not None:
         img_comp_cond_embeds = img_comp_cond_embeds.to(device, dtype=dtype)
 
+    print("img_cond_embeds.shape[0]", img_cond_embeds.shape[0])
+
     # combine the embeddings if needed
     if combine_embeds != "concat" and img_cond_embeds.shape[0] > 1 and not unfold_batch:
         if combine_embeds == "add":
@@ -740,6 +742,7 @@ class IPAdapterAdvanced:
         work_model = model.clone()
 
         for i in range(len(image)):
+            print(" ### handling image: ", i)
             if image[i] is None:
                 continue
 
