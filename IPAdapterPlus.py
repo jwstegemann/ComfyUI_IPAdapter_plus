@@ -426,11 +426,11 @@ def ipadapter_execute(model,
 
     # print("out2", embeds)
 
-    return (model, image, faceid, embeds)
+    return (model, image, faceid, embeds, ipa.to("cpu"))
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
- Loadersxxx
+ Loaders
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 
@@ -701,7 +701,7 @@ class IPAdapterAdvanced:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "EMBEDS")
+    RETURN_TYPES = ("MODEL", "EMBEDS", "IPADAPTERINSTANCE")
 
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
@@ -767,13 +767,13 @@ class IPAdapterAdvanced:
                 "encode_batch_size": encode_batch_size,
             }
 
-            work_model, face_image, faceid, embeds = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
+            work_model, face_image, faceid, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
 
         del ipadapter
 
         # print("out embeds: ", embeds)
 
-        return (work_model, embeds)
+        return (work_model, embeds, ipa)
 
 class IPAdapterBatch(IPAdapterAdvanced):
     def __init__(self):
@@ -969,7 +969,7 @@ class FacePlusIPAdapterFromEmbeds():
             is_full=False,
             is_faceid=False,
             is_portrait_unnorm=False,
-        ).to(device, dtype=dtype)
+        ) #.to(device, dtype=dtype)
 
         return (ipa, )
 
@@ -1003,6 +1003,9 @@ class ApplyFacePlusIPAdapter():
         dtype = model_management.unet_dtype()
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
+
+        if ipadapterinstance.device != torch.device(device):
+            ipadapterinstance.to(device, dtype=dtype)
 
         if isinstance(weight, list):
             weight = weight[0]
