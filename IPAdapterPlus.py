@@ -1004,6 +1004,9 @@ class ApplyFacePlusIPAdapter():
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
 
+        if ipadapterinstance.device != torch.device(device):
+            ipadapterinstance.to(device, dtype=dtype)
+
         if isinstance(weight, list):
             weight = weight[0]
 
