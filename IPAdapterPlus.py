@@ -971,6 +971,8 @@ class FacePlusIPAdapterFromEmbeds():
             is_portrait_unnorm=False,
         ).to(device, dtype=dtype)
 
+        del ipadapter
+
         return (ipa, )
 
 
