@@ -426,7 +426,7 @@ def ipadapter_execute(model,
 
     # print("out2", embeds)
 
-    return (model, image, faceid, embeds, ipa.to("cpu"))
+    return (model, image, faceid, embeds, ipa)
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -969,7 +969,7 @@ class FacePlusIPAdapterFromEmbeds():
             is_full=False,
             is_faceid=False,
             is_portrait_unnorm=False,
-        ) #.to(device, dtype=dtype)
+        ).to(device, dtype=dtype)
 
         return (ipa, )
 
@@ -1003,9 +1003,6 @@ class ApplyFacePlusIPAdapter():
         dtype = model_management.unet_dtype()
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
-
-        if ipadapterinstance.device != torch.device(device):
-            ipadapterinstance.to(device, dtype=dtype)
 
         if isinstance(weight, list):
             weight = weight[0]
