@@ -37,6 +37,15 @@ class CrossAttentionPatch:
         self.unfold_batch.append(unfold_batch)
         self.embeds_scaling.append(embeds_scaling)
 
+
+    def weight_s(t_idx, layers=11, mid_point=5, steepness=1.5):
+        if t_idx == layers - 1:
+            return 1.0        
+        x = (t_idx - mid_point) / (layers / 10)
+        sigmoid = 1 / (1 + math.exp(-steepness * x))
+        return 0.1 + 0.9 * sigmoid
+
+
     def __call__(self, q, k, v, extra_options):
         dtype = q.dtype
         cond_or_uncond = extra_options["cond_or_uncond"]
@@ -59,9 +68,25 @@ class CrossAttentionPatch:
                 if weight_type == 'ease in':
                     weight = weight * (0.05 + 0.95 * (1 - t_idx / self.layers))
                 elif weight_type == 'ease out':
-#                    weight = weight * (0.2 + 0.8 * (t_idx / self.layers))
-                    print("ease out ", t_idx, " of ", self.layers)
-                    weight = weight * (0.05 + 0.95 * (1 - math.exp(-5 * t_idx / self.layers)) / (1 - math.exp(-5)))
+                    weight = weight * (0.05 + 0.95 * (t_idx / self.layers))
+                elif weight_type == 's11':
+                    weight = self.weight_s(t_idx, mid_point=3, steepness=1.5)
+                elif weight_type == 's12':
+                    weight = self.weight_s(t_idx, mid_point=3, steepness=1.2)
+                elif weight_type == 's13':
+                    weight = self.weight_s(t_idx, mid_point=3, steepness=2.0)
+                elif weight_type == 's21':
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.5)
+                elif weight_type == 's22':
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.2)
+                elif weight_type == 's23':
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=2.0)
+                elif weight_type == 's31':
+                    weight = self.weight_s(t_idx, mid_point=7, steepness=1.5)
+                elif weight_type == 's32':
+                    weight = self.weight_s(t_idx, mid_point=7, steepness=1.2)
+                elif weight_type == 's33':
+                    weight = self.weight_s(t_idx, mid_point=7, steepness=2.0)
                 elif weight_type == 'ease in-out':
                     weight = weight * (0.05 + 0.95 * (1 - abs(t_idx - (self.layers/2)) / (self.layers/2)))
                 elif weight_type == 'reverse in-out':
