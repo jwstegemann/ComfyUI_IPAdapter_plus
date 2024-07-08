@@ -38,12 +38,12 @@ class CrossAttentionPatch:
         self.embeds_scaling.append(embeds_scaling)
 
 
-    def weight_s(t_idx, layers=11, mid_point=5, steepness=1.5):
+    def weight_s(self, t_idx:int, layers=11, mid_point=5, steepness=1.5):
         if t_idx == layers - 1:
             return 1.0        
         x = (t_idx - mid_point) / (layers / 10)
         sigmoid = 1 / (1 + math.exp(-steepness * x))
-        return 0.1 + 0.9 * sigmoid
+        return 0.05 + 0.95 * sigmoid
 
 
     def __call__(self, q, k, v, extra_options):
