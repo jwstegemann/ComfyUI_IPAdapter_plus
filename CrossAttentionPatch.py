@@ -70,23 +70,23 @@ class CrossAttentionPatch:
                 elif weight_type == 'ease out':
                     weight = weight * (0.05 + 0.95 * (t_idx / self.layers))
                 elif weight_type == 's11':
-                    weight = self.weight_s(t_idx, mid_point=3, steepness=1.5)
+                    weight = self.weight_s(t_idx, mid_point=4, steepness=1.2)
                 elif weight_type == 's12':
-                    weight = self.weight_s(t_idx, mid_point=3, steepness=1.2)
+                    weight = self.weight_s(t_idx, mid_point=4, steepness=1.5)
                 elif weight_type == 's13':
-                    weight = self.weight_s(t_idx, mid_point=3, steepness=2.0)
+                    weight = self.weight_s(t_idx, mid_point=4, steepness=1.8)
                 elif weight_type == 's21':
-                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.5)
+                    weight = self.weight_s(t_idx, mid_point=4, steepness=2.0)
                 elif weight_type == 's22':
-                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.2)
+                    weight = self.weight_s(t_idx, mid_point=4, steepness=3.2)
                 elif weight_type == 's23':
-                    weight = self.weight_s(t_idx, mid_point=5, steepness=2.0)
+                    weight = self.weight_s(t_idx, mid_point=4, steepness=10.0)
                 elif weight_type == 's31':
-                    weight = self.weight_s(t_idx, mid_point=7, steepness=1.5)
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.5)
                 elif weight_type == 's32':
-                    weight = self.weight_s(t_idx, mid_point=7, steepness=1.2)
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.2)
                 elif weight_type == 's33':
-                    weight = self.weight_s(t_idx, mid_point=7, steepness=2.0)
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=2.0)
                 elif weight_type == 'ease in-out':
                     weight = weight * (0.05 + 0.95 * (1 - abs(t_idx - (self.layers/2)) / (self.layers/2)))
                 elif weight_type == 'reverse in-out':
