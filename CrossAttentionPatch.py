@@ -59,7 +59,8 @@ class CrossAttentionPatch:
                 if weight_type == 'ease in':
                     weight = weight * (0.05 + 0.95 * (1 - t_idx / self.layers))
                 elif weight_type == 'ease out':
-                    weight = weight * (0.2 + 0.8 * (t_idx / self.layers))
+#                    weight = weight * (0.2 + 0.8 * (t_idx / self.layers))
+                    weight = weight * (0.05 + 0.95 * (1 - math.exp(-5 * t_idx / self.layers)) / (1 - math.exp(-5)))
                 elif weight_type == 'ease in-out':
                     weight = weight * (0.05 + 0.95 * (1 - abs(t_idx - (self.layers/2)) / (self.layers/2)))
                 elif weight_type == 'reverse in-out':
