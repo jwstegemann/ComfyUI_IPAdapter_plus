@@ -40,7 +40,7 @@ else:
     current_paths, _ = folder_paths.folder_names_and_paths["ipadapter"]
 folder_paths.folder_names_and_paths["ipadapter"] = (current_paths, folder_paths.supported_pt_extensions)
 
-WEIGHT_TYPES = ["linear", "ease in", "ease out", "s11","s12","s13","s21","s22","s23","s31","s32","s33", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer']
+WEIGHT_TYPES = ["demo", "linear", "ease in", "ease out", "s11","s12","s13","s21","s22","s23","s31","s32","s33", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer']
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -985,6 +985,18 @@ class ApplyFacePlusIPAdapter():
                 "ipadapterinstance": ("IPADAPTERINSTANCE", ),
                 "embeds": ("EMBEDS", ),
                 "weight": ("FLOAT", { "default": 1.0, "min": -1, "max": 5, "step": 0.05 }),
+                "weight1": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight2": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight3": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight4": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight5": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight6": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight7": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight8": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight9": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight10": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
                 "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
@@ -999,7 +1011,7 @@ class ApplyFacePlusIPAdapter():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight=1.0, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight, weight1,weight2,weight3,weight4,weight5,weight6,weight7,weight8,weight9,weight10,weight11,weight12, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         is_sdxl = True
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
@@ -1026,6 +1038,7 @@ class ApplyFacePlusIPAdapter():
 
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
+        weight={"1":weight10, "2": weight2, "3": weight2, "4": weight4, "5":weight5, "6": weight6, "7": weight7, "8": weight8, "9": weight9, "10": weight10, "11": weight11, "12": weight12}
 
         patch_kwargs = {
             "ipadapter": ipadapterinstance,

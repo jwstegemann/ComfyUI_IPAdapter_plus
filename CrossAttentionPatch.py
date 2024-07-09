@@ -43,7 +43,7 @@ class CrossAttentionPatch:
             return 1.0        
         x = (t_idx - mid_point) / (layers / 10)
         sigmoid = 1 / (1 + math.exp(-steepness * x))
-        return 0.05 + 0.95 * sigmoid
+        return 0.10 + 0.9 * sigmoid
 
 
     def __call__(self, q, k, v, extra_options):
@@ -84,9 +84,9 @@ class CrossAttentionPatch:
                 elif weight_type == 's31':
                     weight = self.weight_s(t_idx, mid_point=5, steepness=10)
                 elif weight_type == 's32':
-                    weight = self.weight_s(t_idx, mid_point=6, steepness=1.05)
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.05)
                 elif weight_type == 's33':
-                    weight = self.weight_s(t_idx, mid_point=6, steepness=1.2)
+                    weight = self.weight_s(t_idx, mid_point=5, steepness=1.2)
                 elif weight_type == 'ease in-out':
                     weight = weight * (0.05 + 0.95 * (1 - abs(t_idx - (self.layers/2)) / (self.layers/2)))
                 elif weight_type == 'reverse in-out':
