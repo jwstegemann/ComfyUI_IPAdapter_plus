@@ -996,7 +996,6 @@ class ApplyFacePlusIPAdapter():
                 "weight9": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight10": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight12": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
