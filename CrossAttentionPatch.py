@@ -104,6 +104,7 @@ class CrossAttentionPatch:
                         continue
 
                     weight = weight[t_idx]
+                    print("using weight ", weight, " @ ", t_idx)
 
                     if cond_alt is not None and t_idx in cond_alt:
                         cond = cond_alt[t_idx]
