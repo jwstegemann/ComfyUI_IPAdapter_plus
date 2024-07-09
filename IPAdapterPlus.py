@@ -997,6 +997,7 @@ class ApplyFacePlusIPAdapter():
                 "weight10": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight12": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
                 "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
@@ -1038,7 +1039,7 @@ class ApplyFacePlusIPAdapter():
 
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
-        weight={"1":weight10, "2": weight2, "3": weight2, "4": weight4, "5":weight5, "6": weight6, "7": weight7, "8": weight8, "9": weight9, "10": weight10, "11": weight11, "12": weight12}
+        weight={"1":weight1, "2": weight2, "3": weight3, "4": weight4, "5":weight5, "6": weight6, "7": weight7, "8": weight8, "9": weight9, "10": weight10, "11": weight11, "12": weight12}
 
         patch_kwargs = {
             "ipadapter": ipadapterinstance,
