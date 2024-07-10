@@ -1057,7 +1057,7 @@ class ApplyFacePlusIPAdapter():
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
         if (weights):
-            weight={1:weight * weights.weight1, 2: weight * weights.weight2, 3: weight * weights.weight3, 4: weight * weights.weight4, 5:weight * weights.weight5, 6: weight * weights.weight6, 7: weight * weights.weight7, 8: weight * weights.weight8, 9: weight * weights.weight9, 10: weight * weights.weight10, 11: weight * weights.weight11}
+            weight={1:weight * weights[1], 2: weight * weights[2], 3: weight * weights[3], 4: weight * weights[4], 5:weight * weights[5], 6: weight * weights[6], 7: weight * weights[7], 8: weight * weights[8], 9: weight * weights[9], 10: weight * weights[10], 11: weight * weights[11]}
 
         patch_kwargs = {
             "ipadapter": ipadapterinstance,
