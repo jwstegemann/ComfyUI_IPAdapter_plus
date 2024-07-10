@@ -976,15 +976,12 @@ class FacePlusIPAdapterFromEmbeds():
         return (ipa, )
 
 
-class ApplyFacePlusIPAdapter():
+
+class FacePlusWeights():
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
-                "model": ("MODEL", ),
-                "ipadapterinstance": ("IPADAPTERINSTANCE", ),
-                "embeds": ("EMBEDS", ),
-                "weight": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
                 "weight1": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight2": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight3": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
@@ -996,7 +993,27 @@ class ApplyFacePlusIPAdapter():
                 "weight9": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight10": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
                 "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight12": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+            }
+        }
+
+    CATEGORY = "ipadapter/plus"
+    RETURN_TYPES = ("IPADAPTERWEIGHTS",)
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, weight1,weight2,weight3,weight4,weight5,weight6,weight7,weight8,weight9,weight10,weight11):
+        weight={1:weight1, 2: weight2, 3: weight3, 4: weight4, 5:weight5, 6: weight6, 7: weight7, 8: weight8, 9: weight9, 10: weight10, 11: weight11}
+        return (weight, )
+
+
+class ApplyFacePlusIPAdapter():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": ("MODEL", ),
+                "ipadapterinstance": ("IPADAPTERINSTANCE", ),
+                "embeds": ("EMBEDS", ),
+                "weight": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
                 "weight_type": (WEIGHT_TYPES, ),
                 "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
                 "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
@@ -1004,6 +1021,7 @@ class ApplyFacePlusIPAdapter():
             },
             "optional": {
                 "attn_mask": ("MASK",),
+                "weights": ("IPADAPTERWEIGHTS",)
             }
         }
 
@@ -1011,7 +1029,7 @@ class ApplyFacePlusIPAdapter():
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight, weight1,weight2,weight3,weight4,weight5,weight6,weight7,weight8,weight9,weight10,weight11,weight12, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, weights=None):
         is_sdxl = True
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
@@ -1038,7 +1056,8 @@ class ApplyFacePlusIPAdapter():
 
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
-        weight={1:weight1, 2: weight2, 3: weight3, 4: weight4, 5:weight5, 6: weight6, 7: weight7, 8: weight8, 9: weight9, 10: weight10, 11: weight11, 12: weight12}
+        if (weights):
+            weight={1:weight * weights.weight1, 2: weight * weights.weight2, 3: weight * weights.weight3, 4: weight * weights.weight4, 5:weight * weights.weight5, 6: weight * weights.weight6, 7: weight * weights.weight7, 8: weight * weights.weight8, 9: weight * weights.weight9, 10: weight * weights.weight10, 11: weight * weights.weight11}
 
         patch_kwargs = {
             "ipadapter": ipadapterinstance,
@@ -2291,6 +2310,7 @@ NODE_CLASS_MAPPINGS = {
     # Comics
     "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
     "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
+    "FacePlusWeights": FacePlusWeights
 
 }
 
@@ -2340,5 +2360,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     # Comics
     "ApplyFacePlusIPAdapter": "Apply FacePlus IPAdapter", 
     "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
+    "FacePlusWeights": "Weight for IPAdapter"
 
 }
