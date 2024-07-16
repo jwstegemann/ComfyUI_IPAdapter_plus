@@ -363,16 +363,15 @@ def ipadapter_execute(model,
         is_portrait_unnorm=is_portrait_unnorm,
     ).to(device, dtype=dtype)
 
-    if (insightface): #if is_faceid and is_plus:
+    if is_faceid:
         cond = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
         uncond = ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
     if not is_faceid:
-        if insightface:
-            cond_faceid = cond
-#            uncond_facid = uncond
         cond, uncond = ipa.get_image_embeds(img_cond_embeds, img_uncond_embeds)
         if (insightface):
+            print(face_cond_embeds)
+            cond_faceid = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, 1.0, True)
             print("##### averaging with faceid")
             cond = torch.mean(torch.stack([cond, cond_faceid]), dim=0)
         if img_comp_cond_embeds is not None:
