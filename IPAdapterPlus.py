@@ -701,7 +701,10 @@ class IPAdapterAdvanced:
             }
         }
 
-    RETURN_TYPES = ("MODEL", "EMBEDS", "IPADAPTERINSTANCE")
+    RETURN_TYPES = ("MODEL","IMAGE","FACEID","EMBEDS","IPADAPTERINSTANCE")
+    RETURN_NAMES = ("MODEL", "face_image", "faceid","embeds","ipa")
+
+#    RETURN_TYPES = ("MODEL", "EMBEDS", "IPADAPTERINSTANCE")
 
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
@@ -773,7 +776,7 @@ class IPAdapterAdvanced:
 
         # print("out embeds: ", embeds)
 
-        return (work_model, embeds, ipa)
+        return (work_model, face_image, faceid, embeds, ipa)
 
 class IPAdapterBatch(IPAdapterAdvanced):
     def __init__(self):
@@ -877,8 +880,8 @@ class IPAdapterFaceID(IPAdapterAdvanced):
         }
 
     CATEGORY = "ipadapter/faceid"
-    RETURN_TYPES = ("MODEL","IMAGE","FACEID")
-    RETURN_NAMES = ("MODEL", "face_image", "faceid")
+    RETURN_TYPES = ("MODEL","IMAGE","FACEID","EMBEDS","IPADAPTERINSTANCE")
+    RETURN_NAMES = ("MODEL", "face_image", "faceid","embeds","ipa")
 
 
 #
@@ -982,17 +985,17 @@ class FacePlusWeights():
     def INPUT_TYPES(s):
         return {
             "required": {
-                "weight1": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight2": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight3": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight4": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight5": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight6": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight7": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight8": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight9": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight10": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
-                "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 1, "step": 0.05 }),
+                "weight1": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight2": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight3": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight4": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight5": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight6": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight7": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight8": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight9": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight10": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight11": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
             }
         }
 
