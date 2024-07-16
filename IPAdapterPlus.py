@@ -198,7 +198,7 @@ def ipadapter_execute(model,
         weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
 
     cross_attention_dim = 1280 if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
-    clip_extra_context_tokens = 16 if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
+    clip_extra_context_tokens = 16 # if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
 
     if image is not None and image.shape[1] != image.shape[2]:
         print("\033[33mINFO: the IPAdapter reference image is not a square, CLIPImageProcessor will resize and crop it at the center. If the main focus of the picture is not in the middle the result might not be what you are expecting.\033[0m")
