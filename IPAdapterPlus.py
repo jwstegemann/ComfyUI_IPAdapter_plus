@@ -367,7 +367,7 @@ def ipadapter_execute(model,
         cond = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
         uncond = ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
-    if not faceid:
+    if not is_faceid:
         if insightface:
             cond_faceid = cond
 #            uncond_facid = uncond
