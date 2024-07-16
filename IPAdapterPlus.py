@@ -66,8 +66,6 @@ class IPAdapter(nn.Module):
             self.image_proj_model = self.init_proj_full()
         elif is_plus or is_portrait_unnorm:
             self.image_proj_model = self.init_proj_plus()
-            self.face_proj_model = self.init_proj_faceid()
-            self.face_proj_model.load_state_dict(ipadapter_model["image_proj"])
         else:
             self.image_proj_model = self.init_proj()
 
@@ -129,11 +127,6 @@ class IPAdapter(nn.Module):
         embeds = self.image_proj_model(face_embed, clip_embed, scale=s_scale, shortcut=shortcut)
         return embeds
 
-    @torch.inference_mode()
-    def get_image_embeds_faceid_plus2(self, face_embed, clip_embed, s_scale, shortcut):
-        embeds = self.face_proj_model(face_embed, clip_embed, scale=s_scale, shortcut=shortcut)
-        return embeds
-
 class To_KV(nn.Module):
     def __init__(self, state_dict):
         super().__init__()
@@ -174,7 +167,8 @@ def ipadapter_execute(model,
                       unfold_batch=False,
                       embeds_scaling='V only',
                       layer_weights=None,
-                      encode_batch_size=0,):
+                      encode_batch_size=0,
+                      faceid=None):
     device = model_management.get_torch_device()
     dtype = model_management.unet_dtype()
     if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
@@ -374,13 +368,12 @@ def ipadapter_execute(model,
         cond = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
         uncond = ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
-    if not is_faceid:
+    else:
         cond, uncond = ipa.get_image_embeds(img_cond_embeds, img_uncond_embeds)
-        if (insightface):
-            print(face_cond_embeds)
-            cond_faceid = ipa.get_image_embeds_faceid_plus2(face_cond_embeds, img_cond_embeds, 1.0, True)
+        if (faceid):
+            print(faceid)
             print("##### averaging with faceid")
-            cond = torch.mean(torch.stack([cond, cond_faceid]), dim=0)
+            cond = torch.mean(torch.stack([cond, faceid["cond"]]), dim=0)
         if img_comp_cond_embeds is not None:
             cond_comp = ipa.get_image_embeds(img_comp_cond_embeds, img_uncond_embeds)[0]
 
@@ -711,6 +704,7 @@ class IPAdapterAdvanced:
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
                 "insightface": ("INSIGHTFACE",),
+                "faceid": ("FACEID",),
             }
         }
 
@@ -722,7 +716,7 @@ class IPAdapterAdvanced:
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
 
-    def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0):
+    def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, attn_mask=None, insightface=None, faceid=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
         if 'ipadapter' in ipadapter:
@@ -781,6 +775,7 @@ class IPAdapterAdvanced:
                 "insightface": insightface if insightface is not None else ipadapter['insightface']['model'] if 'insightface' in ipadapter else None,
                 "layer_weights": layer_weights,
                 "encode_batch_size": encode_batch_size,
+                "faceid": faceid
             }
 
             work_model, face_image, faceid, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
