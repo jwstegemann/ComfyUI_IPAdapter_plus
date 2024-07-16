@@ -232,7 +232,7 @@ def ipadapter_execute(model,
 
     img_comp_cond_embeds = None
     face_cond_embeds = None
-    if insightface: #if is_faceid:
+    if is_faceid:
         if insightface is None:
             raise Exception("Insightface model is required for FaceID models")
 
@@ -364,7 +364,7 @@ def ipadapter_execute(model,
         is_portrait_unnorm=is_portrait_unnorm,
     ).to(device, dtype=dtype)
 
-    if is_faceid:
+    if is_faceid and is_plus:        
         cond = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
         uncond = ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
@@ -375,6 +375,7 @@ def ipadapter_execute(model,
             print("##### averaging with faceid")
             #cond = torch.mean(torch.stack([cond, faceid["cond"]]), dim=0)
             cond = torch.cat([(faceid["cond"][:, :4, :] + cond[:, :4, :]) / 2, cond[:, 4:, :]], dim=1)
+            print(cond.shape)
         if img_comp_cond_embeds is not None:
             cond_comp = ipa.get_image_embeds(img_comp_cond_embeds, img_uncond_embeds)[0]
 
@@ -704,7 +705,6 @@ class IPAdapterAdvanced:
                 "image_negative": ("IMAGE",),
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
-                "insightface": ("INSIGHTFACE",),
                 "faceid": ("FACEID",),
             }
         }
