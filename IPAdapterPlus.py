@@ -66,6 +66,8 @@ class IPAdapter(nn.Module):
             self.image_proj_model = self.init_proj_full()
         elif is_plus or is_portrait_unnorm:
             self.image_proj_model = self.init_proj_plus()
+            self.face_proj_model = self.init_proj_faceid()
+            self.face_proj_model.load_state_dict(ipadapter_model["image_proj"])
         else:
             self.image_proj_model = self.init_proj()
 
@@ -125,6 +127,11 @@ class IPAdapter(nn.Module):
     @torch.inference_mode()
     def get_image_embeds_faceid_plus(self, face_embed, clip_embed, s_scale, shortcut):
         embeds = self.image_proj_model(face_embed, clip_embed, scale=s_scale, shortcut=shortcut)
+        return embeds
+
+    @torch.inference_mode()
+    def get_image_embeds_faceid_plus2(self, face_embed, clip_embed, s_scale, shortcut):
+        embeds = self.face_proj_model(face_embed, clip_embed, scale=s_scale, shortcut=shortcut)
         return embeds
 
 class To_KV(nn.Module):
@@ -371,7 +378,7 @@ def ipadapter_execute(model,
         cond, uncond = ipa.get_image_embeds(img_cond_embeds, img_uncond_embeds)
         if (insightface):
             print(face_cond_embeds)
-            cond_faceid = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, 1.0, True)
+            cond_faceid = ipa.get_image_embeds_faceid_plus2(face_cond_embeds, img_cond_embeds, 1.0, True)
             print("##### averaging with faceid")
             cond = torch.mean(torch.stack([cond, cond_faceid]), dim=0)
         if img_comp_cond_embeds is not None:
