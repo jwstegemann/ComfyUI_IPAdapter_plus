@@ -1204,7 +1204,6 @@ class ApplyFaceIDv2XL():
 
     def apply_ipadapter(self, model, ipadapterinstance, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         is_sdxl = True
-
 #        start_time = time.time()
 
         # from execute
@@ -1213,6 +1212,7 @@ class ApplyFaceIDv2XL():
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
 
+        ipadapterinstance.to(device, dtype=dtype)
         weight_faceidv2 = weight_faceidv2 if weight_faceidv2 is not None else weight*2
 
 #        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
@@ -1225,6 +1225,10 @@ class ApplyFaceIDv2XL():
         # if img_comp_cond_embeds is not None:
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
+        if (weight_type == "unstyled high likeliness"):
+            weight={1:weight * weight_unstyled_high[1], 2: weight * weight_unstyled_high[2], 3: weight * weight_unstyled_high[3], 4: weight * weight_unstyled_high[4], 5:weight * weight_unstyled_high[5], 6: weight * weight_unstyled_high[6], 7: weight * weight_unstyled_high[7], 8: weight * weight_unstyled_high[8], 9: weight * weight_unstyled_high[9], 10: weight * weight_unstyled_high[10], 11: weight * weight_unstyled_high[11]}
+        elif (weight_type == "unstyled"):
+            weight={1:weight * weight_unstyled[1], 2: weight * weight_unstyled[2], 3: weight * weight_unstyled[3], 4: weight * weight_unstyled[4], 5:weight * weight_unstyled[5], 6: weight * weight_unstyled[6], 7: weight * weight_unstyled[7], 8: weight * weight_unstyled[8], 9: weight * weight_unstyled[9], 10: weight * weight_unstyled[10], 11: weight * weight_unstyled[11]}
 
         work_model = model.clone()
 
