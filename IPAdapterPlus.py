@@ -1135,14 +1135,14 @@ class FaceIDv2IPAdapterXL():
         is_sdxl = True
 
         start_time = time.time()
-        ipadapter_model = ipadapter['ipadapter']['model']
+        #ipadapter_model = ipadapter['ipadapter']['model']
 
         # from execute
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
             dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
-        output_cross_attention_dim = ipadapter_model["ip_adapter"]["1.to_k_ip.weight"].shape[1]
+        output_cross_attention_dim = ipadapter["ip_adapter"]["1.to_k_ip.weight"].shape[1]
 
         is_full = False
         is_portrait = False
@@ -1161,7 +1161,7 @@ class FaceIDv2IPAdapterXL():
 #        print("before ipadapter #### ", ((time.time() - start_time) * 1000), "ms.")
 
         ipa = IPAdapter(
-            ipadapter_model,
+            ipadapter,
             cross_attention_dim=cross_attention_dim,
             output_cross_attention_dim=output_cross_attention_dim,
             clip_embeddings_dim=img_cond_embeds.shape[-1],
