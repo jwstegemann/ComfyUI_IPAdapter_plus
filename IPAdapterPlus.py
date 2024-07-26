@@ -12,7 +12,7 @@ import comfy.utils
 import torch.nn as nn
 from PIL import Image
 
-import yct.yct
+from yct import ApplyFaceIDv2XL, ApplyFacePlusIPAdapter, FaceIDv2IPAdapterXL, FacePlusIPAdapterFromEmbeds, FacePlusWeights, IPAdapterFromFaceID, IPAdapterLoadFaceId, IPAdapterSaveFaceId
 
 try:
     import torchvision.transforms.v2 as T
@@ -1769,16 +1769,16 @@ NODE_CLASS_MAPPINGS = {
     "IPAdapterCombineParams": IPAdapterCombineParams,
 
     # StoredFaceId
-    "IPAdapterSaveFaceId": yct.IPAdapterSaveFaceId,
-    "IPAdapterLoadFaceId": yct.IPAdapterLoadFaceId,
-    "IPAdapterFromFaceID": yct.IPAdapterFromFaceID,
-    "ApplyFaceIDv2XL": yct.ApplyFaceIDv2XL, 
-    "FaceIDv2IPAdapterXL": yct.FaceIDv2IPAdapterXL,
+    "IPAdapterSaveFaceId": IPAdapterSaveFaceId,
+    "IPAdapterLoadFaceId": IPAdapterLoadFaceId,
+    "IPAdapterFromFaceID": IPAdapterFromFaceID,
+    "ApplyFaceIDv2XL": ApplyFaceIDv2XL, 
+    "FaceIDv2IPAdapterXL": FaceIDv2IPAdapterXL,
 
     # Comics
-    "ApplyFacePlusIPAdapter": yct.ApplyFacePlusIPAdapter, 
-    "FacePlusIPAdapterFromEmbeds": yct.FacePlusIPAdapterFromEmbeds,
-    "FacePlusWeights": yct.FacePlusWeights
+    "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
+    "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
+    "FacePlusWeights": FacePlusWeights
 
 }
 
