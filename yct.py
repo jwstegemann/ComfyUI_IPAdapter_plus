@@ -1,7 +1,7 @@
 import torch
 import os
 import math
-from IPAdapterPlus import WEIGHT_TYPES, IPAdapter, set_model_patch_replace
+from .IPAdapterPlus import (WEIGHT_TYPES, IPAdapter, set_model_patch_replace)
 import folder_paths
 
 import comfy.model_management as model_management
