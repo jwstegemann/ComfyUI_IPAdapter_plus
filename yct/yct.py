@@ -13,15 +13,15 @@ import comfy.utils
 import torch.nn as nn
 from PIL import Image
 
-import yct
+import yct.yct as yct
 try:
     import torchvision.transforms.v2 as T
 except ImportError:
     import torchvision.transforms as T
 
-from .image_proj_models import MLPProjModel, MLPProjModelFaceId, ProjModelFaceIdPlus, Resampler, ImageProjModel
-from .CrossAttentionPatch import CrossAttentionPatch
-from .utils import (
+from ..image_proj_models import MLPProjModel, MLPProjModelFaceId, ProjModelFaceIdPlus, Resampler, ImageProjModel
+from ..CrossAttentionPatch import CrossAttentionPatch
+from ..utils import (
     encode_image_masked,
     tensor_to_size,
     contrast_adaptive_sharpening,
