@@ -13,7 +13,6 @@ import comfy.utils
 import torch.nn as nn
 from PIL import Image
 
-import yct as yct
 try:
     import torchvision.transforms.v2 as T
 except ImportError:

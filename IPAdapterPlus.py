@@ -12,7 +12,7 @@ import comfy.utils
 import torch.nn as nn
 from PIL import Image
 
-from yct import ApplyFaceIDv2XL, ApplyFacePlusIPAdapter, FaceIDv2IPAdapterXL, FacePlusIPAdapterFromEmbeds, FacePlusWeights, IPAdapterFromFaceID, IPAdapterLoadFaceId, IPAdapterSaveFaceId
+from .yct import (ApplyFaceIDv2XL, ApplyFacePlusIPAdapter, FaceIDv2IPAdapterXL, FacePlusIPAdapterFromEmbeds, FacePlusWeights, IPAdapterFromFaceID, IPAdapterLoadFaceId, IPAdapterSaveFaceId)
 
 try:
     import torchvision.transforms.v2 as T
