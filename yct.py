@@ -1,7 +1,6 @@
 import torch
 import os
 import math
-from .IPAdapterPlus import (WEIGHT_TYPES, IPAdapter, set_model_patch_replace)
 import folder_paths
 
 import comfy.model_management as model_management
@@ -55,6 +54,8 @@ class FacePlusIPAdapterFromEmbeds():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, ipadapter, embeds):
+        from .IPAdapterPlus import IPAdapter
+
         # print("in embeds: ", embeds)
 
         if ipadapter is None:
@@ -124,6 +125,8 @@ weight_unstyled_high = { 1: 0.05, 2: 0.05, 3: 0.95, 4: 0.9, 5: 0.9, 6: 0.3, 7: 0
 class ApplyFacePlusIPAdapter():
     @classmethod
     def INPUT_TYPES(s):
+        from .IPAdapterPlus import WEIGHT_TYPES
+
         return {
             "required": {
                 "model": ("MODEL", ),
@@ -146,7 +149,8 @@ class ApplyFacePlusIPAdapter():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapterinstance, embeds, weight, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, weights=None):
-        is_sdxl = True
+        from .IPAdapterPlus import set_model_patch_replace
+
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
         if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
@@ -233,6 +237,8 @@ class FaceIDv2IPAdapterXL():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, ipadapter, faceid):
+        from .IPAdapterPlus import IPAdapter
+
         is_sdxl = True
 
         start_time = time.time()
@@ -282,6 +288,8 @@ class FaceIDv2IPAdapterXL():
 class ApplyFaceIDv2XL():
     @classmethod
     def INPUT_TYPES(s):
+        from .IPAdapterPlus import WEIGHT_TYPES
+
         return {
             "required": {
                 "model": ("MODEL", ),
@@ -304,6 +312,8 @@ class ApplyFaceIDv2XL():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapterinstance, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+        from .IPAdapterPlus import set_model_patch_replace
+
         is_sdxl = True
 #        start_time = time.time()
 
@@ -386,6 +396,8 @@ class ApplyFaceIDv2XL():
 class IPAdapterFromFaceID():
     @classmethod
     def INPUT_TYPES(s):
+        from .IPAdapterPlus import WEIGHT_TYPES
+        
         return {
             "required": {
                 "model": ("MODEL", ),
@@ -411,6 +423,8 @@ class IPAdapterFromFaceID():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapter, faceid, weight=1.0, weight_faceidv2=None, weight_type="linear", combine_embeds="concat", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, clip_vision=None, insightface=None):
+        from .IPAdapterPlus import (IPAdapter, set_model_patch_replace)
+
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
 #        start_time = time.time()
