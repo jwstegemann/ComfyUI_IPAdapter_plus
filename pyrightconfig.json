@@ -1,0 +1,9 @@
+{
+    "root": ".",
+    "pythonVersion": "3.12",
+    "venvPath": ".",
+    "venv": "venv",
+    "reportMissingImports": true,
+    "reportMissingTypeStubs": false,
+    "extraPaths": ["../ComfyUI"]
+}

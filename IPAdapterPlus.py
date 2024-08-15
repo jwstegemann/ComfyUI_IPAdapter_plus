@@ -40,6 +40,12 @@ folder_paths.folder_names_and_paths["ipadapter"] = (current_paths, folder_paths.
 
 WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise']
 
+# yct
+WEIGHT_TYPES += "unstyled"
+
+weights_unstyled = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.25, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
+# end yct
+
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
  Main IPAdapter Class
@@ -319,6 +325,10 @@ def ipadapter_execute(model,
             weight = { 0:weight*.1, 1:weight*.1, 2:weight*.1, 3:weight_composition, 4:weight*.1, 5:weight*.1, 6:weight, 7:weight*.1, 8:weight*.1, 9:weight*.1, 10:weight*.1 }
         else:
             weight = { 0:weight, 1:weight, 2:weight, 3:weight, 4:weight_composition*0.25, 5:weight_composition, 6:weight*.1, 7:weight*.1, 8:weight*.1, 9:weight, 10:weight, 11:weight, 12:weight, 13:weight, 14:weight, 15:weight }
+    # yct
+    elif (weight_type == "unstyled"):
+        weight={1:weight * weights_unstyled[1], 2: weight * weights_unstyled[2], 3: weight * weights_unstyled[3], 4: weight * weights_unstyled[4], 5:weight * weights_unstyled[5], 6: weight * weights_unstyled[6], 7: weight * weights_unstyled[7], 8: weight * weights_unstyled[8], 9: weight * weights_unstyled[9], 10: weight * weights_unstyled[10], 11: weight * weights_unstyled[11]}
+    # end yct    
 
     clipvision_size = 224 if not is_kwai_kolors else 336
 
@@ -470,6 +480,8 @@ def ipadapter_execute(model,
     if img_comp_cond_embeds is not None:
         cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
+    embeds = { "cond": cond, "uncond": uncond, "cond_alt" : cond_alt, "img_cond_embeds": img_cond_embeds}
+    
     del img_cond_embeds, img_uncond_embeds, img_comp_cond_embeds, face_cond_embeds
 
     sigma_start = model.get_model_object("model_sampling").percent_to_sigma(start_at)
@@ -519,7 +531,10 @@ def ipadapter_execute(model,
             set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
             number += 1
 
-    return (model, image)
+    # yct
+    # return (model, image)
+    return (model, image, embeds, ipa)
+    # end yct
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -750,7 +765,12 @@ class IPAdapterAdvanced:
             }
         }
 
-    RETURN_TYPES = ("MODEL",)
+    # yct
+    # RETURN_TYPES = ("MODEL", )    
+    RETURN_TYPES = ("MODEL", "IMAGE", "EMBEDS", "IPADAPTERINSTANCE")
+    RETURN_NAMES = ("MODEL", "face_image", "embeds", "ipa")
+    # yct end 
+
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
 
@@ -819,10 +839,10 @@ class IPAdapterAdvanced:
                 "weight_kolors": weight_kolors,
             }
 
-            work_model, face_image = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args)
+            work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args) # yct
 
         del ipadapter
-        return (work_model, face_image, )
+        return (work_model, face_image, embeds, ipa) # yct
 
 class IPAdapterBatch(IPAdapterAdvanced):
     def __init__(self):
@@ -1922,6 +1942,10 @@ class IPAdapterCombineParams:
  Register
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
+# yct
+from .yct import (ApplyFacePlusIPAdapter, FacePlusIPAdapterFromEmbeds, FacePlusWeights)
+# end yct
+
 NODE_CLASS_MAPPINGS = {
     # Main Apply Nodes
     "IPAdapter": IPAdapterSimple,
@@ -1965,6 +1989,12 @@ NODE_CLASS_MAPPINGS = {
     "IPAdapterPromptScheduleFromWeightsStrategy": IPAdapterPromptScheduleFromWeightsStrategy,
     "IPAdapterRegionalConditioning": IPAdapterRegionalConditioning,
     "IPAdapterCombineParams": IPAdapterCombineParams,
+
+    # yct
+    "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
+    "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
+    "FacePlusWeights": FacePlusWeights
+    # end yct
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -2010,4 +2040,10 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "IPAdapterCombineWeights": "IPAdapter Combine Weights",
     "IPAdapterRegionalConditioning": "IPAdapter Regional Conditioning",
     "IPAdapterCombineParams": "IPAdapter Combine Params",
+
+    # yct
+    "ApplyFacePlusIPAdapter": "Apply FacePlus IPAdapter", 
+    "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
+    "FacePlusWeights": "Weight for IPAdapter"
+    # end yct
 }
