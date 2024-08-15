@@ -38,11 +38,9 @@ else:
     current_paths, _ = folder_paths.folder_names_and_paths["ipadapter"]
 folder_paths.folder_names_and_paths["ipadapter"] = (current_paths, folder_paths.supported_pt_extensions)
 
-WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise']
-
 # yct
-WEIGHT_TYPES += "unstyled"
-
+# WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise']
+WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise', 'unstyled']
 weights_unstyled = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.25, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
 # end yct
 
