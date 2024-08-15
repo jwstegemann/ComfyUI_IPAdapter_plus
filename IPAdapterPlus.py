@@ -1255,6 +1255,7 @@ class IPAdapterClipVisionEnhancer(IPAdapterAdvanced):
                 "image_negative": ("IMAGE",),
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
+                "external_weights": ("IPADAPTERWEIGHTS",)
             }
         }
 
