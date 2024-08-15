@@ -82,6 +82,9 @@ class FacePlusIPAdapterFromEmbeds():
             is_full=False,
             is_faceid=False,
             is_portrait_unnorm=False,
+            is_kwai_kolors=False,
+            encoder_hid_proj=None,
+            weight_kolors=False
         ).to(device, dtype=dtype)
 
         del ipadapter
@@ -179,7 +182,6 @@ class ApplyFacePlusIPAdapter():
 
         patch_kwargs = {
             "ipadapter": ipadapterinstance,
-            "number": 0,
             "weight": weight,
             "cond": cond,
             "cond_alt": cond_alt,
@@ -191,19 +193,22 @@ class ApplyFacePlusIPAdapter():
             "unfold_batch": False,
             "embeds_scaling": embeds_scaling,
         }
-
+        number = 0
         for id in [4,5,7,8]: # id of input_blocks that have cross attention
             block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
             for index in block_indices:
-                set_model_patch_replace(work_model, patch_kwargs, ("input", id, index))
-                patch_kwargs["number"] += 1
+                patch_kwargs["module_key"] = str(number*2+1)
+                set_model_patch_replace(model, patch_kwargs, ("input", id, index))
+                number += 1
         for id in range(6): # id of output_blocks that have cross attention
             block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
             for index in block_indices:
-                set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
-                patch_kwargs["number"] += 1
+                patch_kwargs["module_key"] = str(number*2+1)
+                set_model_patch_replace(model, patch_kwargs, ("output", id, index))
+                number += 1
         for index in range(10):
-            set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
-            patch_kwargs["number"] += 1
+            patch_kwargs["module_key"] = str(number*2+1)
+            set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
+            number += 1
 
         return (work_model, )
