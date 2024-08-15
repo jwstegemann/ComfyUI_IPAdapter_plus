@@ -40,12 +40,8 @@ folder_paths.folder_names_and_paths["ipadapter"] = (current_paths, folder_paths.
 
 # yct
 # WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise']
-WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise', 'unstyled', 'unstyled1','unstyled2','unstyled3''unstyled4']
+WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise', 'unstyled']
 weights_unstyled = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.25, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
-weights_unstyled1 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.3, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
-weights_unstyled2 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.4, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
-weights_unstyled3 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.5, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
-weights_unstyled4 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.6, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
 # end yct
 
 """
@@ -241,7 +237,8 @@ def ipadapter_execute(model,
                       style_boost=None,
                       composition_boost=None,
                       enhance_tiles=1,
-                      enhance_ratio=1.0,):
+                      enhance_ratio=1.0,
+                      external_weights=None):
     device = model_management.get_torch_device()
     dtype = model_management.unet_dtype()
     if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
@@ -292,6 +289,10 @@ def ipadapter_execute(model,
         weight_type = "composition precise"
 
     # special weight types
+    # yct
+    if external_weights is not None:
+        weight={1:weight * external_weights[1], 2: weight * external_weights[2], 3: weight * external_weights[3], 4: weight * external_weights[4], 5:weight * external_weights[5], 6: weight * external_weights[6], 7: weight * external_weights[7], 8: weight * external_weights[8], 9: weight * external_weights[9], 10: weight * external_weights[10], 11: weight * external_weights[11]}
+    # end yct
     if layer_weights is not None and layer_weights != '':
         weight = { int(k): float(v)*weight for k, v in [x.split(":") for x in layer_weights.split(",")] }
         weight_type = weight_type if weight_type == "style transfer precise" or weight_type == "composition precise" else "linear"
@@ -330,14 +331,6 @@ def ipadapter_execute(model,
     # yct
     elif (weight_type == "unstyled"):
         weight={1:weight * weights_unstyled[1], 2: weight * weights_unstyled[2], 3: weight * weights_unstyled[3], 4: weight * weights_unstyled[4], 5:weight * weights_unstyled[5], 6: weight * weights_unstyled[6], 7: weight * weights_unstyled[7], 8: weight * weights_unstyled[8], 9: weight * weights_unstyled[9], 10: weight * weights_unstyled[10], 11: weight * weights_unstyled[11]}
-    elif (weight_type == "unstyled1"):
-        weight={1:weight * weights_unstyled1[1], 2: weight * weights_unstyled1[2], 3: weight * weights_unstyled1[3], 4: weight * weights_unstyled1[4], 5:weight * weights_unstyled1[5], 6: weight * weights_unstyled1[6], 7: weight * weights_unstyled1[7], 8: weight * weights_unstyled1[8], 9: weight * weights_unstyled1[9], 10: weight * weights_unstyled1[10], 11: weight * weights_unstyled1[11]}
-    elif (weight_type == "unstyled2"):
-        weight={1:weight * weights_unstyled2[1], 2: weight * weights_unstyled2[2], 3: weight * weights_unstyled2[3], 4: weight * weights_unstyled2[4], 5:weight * weights_unstyled2[5], 6: weight * weights_unstyled2[6], 7: weight * weights_unstyled2[7], 8: weight * weights_unstyled2[8], 9: weight * weights_unstyled2[9], 10: weight * weights_unstyled2[10], 11: weight * weights_unstyled2[11]}
-    elif (weight_type == "unstyled4"):
-        weight={1:weight * weights_unstyled4[1], 2: weight * weights_unstyled4[2], 3: weight * weights_unstyled4[3], 4: weight * weights_unstyled4[4], 5:weight * weights_unstyled4[5], 6: weight * weights_unstyled4[6], 7: weight * weights_unstyled4[7], 8: weight * weights_unstyled4[8], 9: weight * weights_unstyled4[9], 10: weight * weights_unstyled4[10], 11: weight * weights_unstyled4[11]}
-    elif (weight_type == "unstyled3"):
-        weight={1:weight * weights_unstyled3[1], 2: weight * weights_unstyled3[2], 3: weight * weights_unstyled3[3], 4: weight * weights_unstyled3[4], 5:weight * weights_unstyled3[5], 6: weight * weights_unstyled3[6], 7: weight * weights_unstyled3[7], 8: weight * weights_unstyled3[8], 9: weight * weights_unstyled3[9], 10: weight * weights_unstyled3[10], 11: weight * weights_unstyled3[11]}
     # end yct    
 
     clipvision_size = 224 if not is_kwai_kolors else 336
@@ -772,6 +765,7 @@ class IPAdapterAdvanced:
                 "image_negative": ("IMAGE",),
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
+                "external_weights": ("IPADAPTERWEIGHTS",) # yct
             }
         }
 
@@ -784,7 +778,7 @@ class IPAdapterAdvanced:
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
 
-    def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0, style_boost=None, composition_boost=None, enhance_tiles=1, enhance_ratio=1.0, weight_kolors=1.0):
+    def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, external_weights=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0, style_boost=None, composition_boost=None, enhance_tiles=1, enhance_ratio=1.0, weight_kolors=1.0):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
         if 'ipadapter' in ipadapter:
@@ -849,7 +843,7 @@ class IPAdapterAdvanced:
                 "weight_kolors": weight_kolors,
             }
 
-            work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args) # yct
+            work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, external_weights, **ipa_args) # yct
 
         del ipadapter
         return (work_model, face_image, embeds, ipa) # yct
