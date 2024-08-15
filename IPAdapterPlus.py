@@ -40,8 +40,12 @@ folder_paths.folder_names_and_paths["ipadapter"] = (current_paths, folder_paths.
 
 # yct
 # WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise']
-WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise', 'unstyled']
+WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise', 'unstyled', 'unstyled1','unstyled2','unstyled3''unstyled4']
 weights_unstyled = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.25, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
+weights_unstyled1 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.3, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
+weights_unstyled2 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.4, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
+weights_unstyled3 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.5, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
+weights_unstyled4 = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.6, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
 # end yct
 
 """
@@ -326,6 +330,14 @@ def ipadapter_execute(model,
     # yct
     elif (weight_type == "unstyled"):
         weight={1:weight * weights_unstyled[1], 2: weight * weights_unstyled[2], 3: weight * weights_unstyled[3], 4: weight * weights_unstyled[4], 5:weight * weights_unstyled[5], 6: weight * weights_unstyled[6], 7: weight * weights_unstyled[7], 8: weight * weights_unstyled[8], 9: weight * weights_unstyled[9], 10: weight * weights_unstyled[10], 11: weight * weights_unstyled[11]}
+    elif (weight_type == "unstyled1"):
+        weight={1:weight * weights_unstyled1[1], 2: weight * weights_unstyled1[2], 3: weight * weights_unstyled1[3], 4: weight * weights_unstyled1[4], 5:weight * weights_unstyled1[5], 6: weight * weights_unstyled1[6], 7: weight * weights_unstyled1[7], 8: weight * weights_unstyled1[8], 9: weight * weights_unstyled1[9], 10: weight * weights_unstyled1[10], 11: weight * weights_unstyled1[11]}
+    elif (weight_type == "unstyled2"):
+        weight={1:weight * weights_unstyled2[1], 2: weight * weights_unstyled2[2], 3: weight * weights_unstyled2[3], 4: weight * weights_unstyled2[4], 5:weight * weights_unstyled2[5], 6: weight * weights_unstyled2[6], 7: weight * weights_unstyled2[7], 8: weight * weights_unstyled2[8], 9: weight * weights_unstyled2[9], 10: weight * weights_unstyled2[10], 11: weight * weights_unstyled2[11]}
+    elif (weight_type == "unstyled4"):
+        weight={1:weight * weights_unstyled4[1], 2: weight * weights_unstyled4[2], 3: weight * weights_unstyled4[3], 4: weight * weights_unstyled4[4], 5:weight * weights_unstyled4[5], 6: weight * weights_unstyled4[6], 7: weight * weights_unstyled4[7], 8: weight * weights_unstyled4[8], 9: weight * weights_unstyled4[9], 10: weight * weights_unstyled4[10], 11: weight * weights_unstyled4[11]}
+    elif (weight_type == "unstyled3"):
+        weight={1:weight * weights_unstyled3[1], 2: weight * weights_unstyled3[2], 3: weight * weights_unstyled3[3], 4: weight * weights_unstyled3[4], 5:weight * weights_unstyled3[5], 6: weight * weights_unstyled3[6], 7: weight * weights_unstyled3[7], 8: weight * weights_unstyled3[8], 9: weight * weights_unstyled3[9], 10: weight * weights_unstyled3[10], 11: weight * weights_unstyled3[11]}
     # end yct    
 
     clipvision_size = 224 if not is_kwai_kolors else 336
