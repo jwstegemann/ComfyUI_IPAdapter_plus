@@ -118,9 +118,6 @@ class FacePlusWeights():
         return (weight, )
 
 
-weight_unstyled = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.25, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
-weight_unstyled_high = { 1: 0.05, 2: 0.05, 3: 0.95, 4: 0.9, 5: 0.9, 6: 0.3, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
-
 class ApplyFacePlusIPAdapter():
     @classmethod
     def INPUT_TYPES(s):
@@ -148,7 +145,7 @@ class ApplyFacePlusIPAdapter():
     FUNCTION = "apply_ipadapter"
 
     def apply_ipadapter(self, model, ipadapterinstance, embeds, weight, weight_type="linear", start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None, weights=None):
-        from .IPAdapterPlus import set_model_patch_replace
+        from .IPAdapterPlus import set_model_patch_replace, weights_unstyled
 
         device = model_management.get_torch_device()
         dtype = model_management.unet_dtype()
@@ -177,10 +174,8 @@ class ApplyFacePlusIPAdapter():
         sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
         if (weights):
             weight={1:weight * weights[1], 2: weight * weights[2], 3: weight * weights[3], 4: weight * weights[4], 5:weight * weights[5], 6: weight * weights[6], 7: weight * weights[7], 8: weight * weights[8], 9: weight * weights[9], 10: weight * weights[10], 11: weight * weights[11]}
-        elif (weight_type == "unstyled high likeliness"):
-            weight={1:weight * weight_unstyled_high[1], 2: weight * weight_unstyled_high[2], 3: weight * weight_unstyled_high[3], 4: weight * weight_unstyled_high[4], 5:weight * weight_unstyled_high[5], 6: weight * weight_unstyled_high[6], 7: weight * weight_unstyled_high[7], 8: weight * weight_unstyled_high[8], 9: weight * weight_unstyled_high[9], 10: weight * weight_unstyled_high[10], 11: weight * weight_unstyled_high[11]}
         elif (weight_type == "unstyled"):
-            weight={1:weight * weight_unstyled[1], 2: weight * weight_unstyled[2], 3: weight * weight_unstyled[3], 4: weight * weight_unstyled[4], 5:weight * weight_unstyled[5], 6: weight * weight_unstyled[6], 7: weight * weight_unstyled[7], 8: weight * weight_unstyled[8], 9: weight * weight_unstyled[9], 10: weight * weight_unstyled[10], 11: weight * weight_unstyled[11]}
+            weight={1:weight * weights_unstyled[1], 2: weight * weights_unstyled[2], 3: weight * weights_unstyled[3], 4: weight * weights_unstyled[4], 5:weight * weights_unstyled[5], 6: weight * weights_unstyled[6], 7: weight * weights_unstyled[7], 8: weight * weights_unstyled[8], 9: weight * weights_unstyled[9], 10: weight * weights_unstyled[10], 11: weight * weights_unstyled[11]}
 
         patch_kwargs = {
             "ipadapter": ipadapterinstance,
