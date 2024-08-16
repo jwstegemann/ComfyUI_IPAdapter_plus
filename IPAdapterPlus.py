@@ -292,8 +292,9 @@ def ipadapter_execute(model,
     # yct
     if external_weights is not None:
         weight={1:weight * external_weights[1], 2: weight * external_weights[2], 3: weight * external_weights[3], 4: weight * external_weights[4], 5:weight * external_weights[5], 6: weight * external_weights[6], 7: weight * external_weights[7], 8: weight * external_weights[8], 9: weight * external_weights[9], 10: weight * external_weights[10], 11: weight * external_weights[11]}
+    #if layer_weights is not None and layer_weights != '':
+    elif layer_weights is not None and layer_weights != '':
     # end yct
-    if layer_weights is not None and layer_weights != '':
         weight = { int(k): float(v)*weight for k, v in [x.split(":") for x in layer_weights.split(",")] }
         weight_type = weight_type if weight_type == "style transfer precise" or weight_type == "composition precise" else "linear"
     elif weight_type == "style transfer":
