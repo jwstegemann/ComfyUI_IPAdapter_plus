@@ -841,9 +841,10 @@ class IPAdapterAdvanced:
                 "enhance_tiles": enhance_tiles,
                 "enhance_ratio": enhance_ratio,
                 "weight_kolors": weight_kolors,
+                "external_weights": external_weights # yct
             }
 
-            work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, external_weights, **ipa_args) # yct
+            work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args) # yct
 
         del ipadapter
         return (work_model, face_image, embeds, ipa) # yct
