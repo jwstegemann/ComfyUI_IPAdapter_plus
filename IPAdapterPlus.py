@@ -847,6 +847,10 @@ class IPAdapterAdvanced:
 
             work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args) # yct
 
+
+            print("embeds: ", embeds)
+            print("ipa: ", ipa)
+
         del ipadapter
         return (work_model, face_image, embeds, ipa) # yct
 
