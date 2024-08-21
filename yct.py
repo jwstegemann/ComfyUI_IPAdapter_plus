@@ -158,6 +158,7 @@ class ApplyFacePlusIPAdapter():
         ipadapterinstance.to(device, dtype=dtype)
 
         if isinstance(weight, list):
+            print("list???")
             weight = weight[0]
 
         if attn_mask is not None:
@@ -171,13 +172,17 @@ class ApplyFacePlusIPAdapter():
         # if img_comp_cond_embeds is not None:
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
+        print("a")
         work_model = model.clone()
 
         sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
         sigma_end = model.get_model_object("model_sampling").percent_to_sigma(end_at)
+        print("b")
         if (weights):
+            print("c")
             weight={1:weight * weights[1], 2: weight * weights[2], 3: weight * weights[3], 4: weight * weights[4], 5:weight * weights[5], 6: weight * weights[6], 7: weight * weights[7], 8: weight * weights[8], 9: weight * weights[9], 10: weight * weights[10], 11: weight * weights[11]}
         elif (weight_type == "unstyled"):
+            print("d")
             weight={1:weight * weights_unstyled[1], 2: weight * weights_unstyled[2], 3: weight * weights_unstyled[3], 4: weight * weights_unstyled[4], 5:weight * weights_unstyled[5], 6: weight * weights_unstyled[6], 7: weight * weights_unstyled[7], 8: weight * weights_unstyled[8], 9: weight * weights_unstyled[9], 10: weight * weights_unstyled[10], 11: weight * weights_unstyled[11]}
 
         patch_kwargs = {
@@ -198,17 +203,17 @@ class ApplyFacePlusIPAdapter():
             block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
             for index in block_indices:
                 patch_kwargs["module_key"] = str(number*2+1)
-                set_model_patch_replace(model, patch_kwargs, ("input", id, index))
+                set_model_patch_replace(work_model, patch_kwargs, ("input", id, index))
                 number += 1
         for id in range(6): # id of output_blocks that have cross attention
             block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
             for index in block_indices:
                 patch_kwargs["module_key"] = str(number*2+1)
-                set_model_patch_replace(model, patch_kwargs, ("output", id, index))
+                set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
                 number += 1
         for index in range(10):
             patch_kwargs["module_key"] = str(number*2+1)
-            set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
+            set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
             number += 1
 
         return (work_model, )
