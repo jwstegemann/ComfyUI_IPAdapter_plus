@@ -41,7 +41,7 @@ folder_paths.folder_names_and_paths["ipadapter"] = (current_paths, folder_paths.
 # yct
 # WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise']
 WEIGHT_TYPES = ["linear", "ease in", "ease out", 'ease in-out', 'reverse in-out', 'weak input', 'weak output', 'weak middle', 'strong middle', 'style transfer', 'composition', 'strong style transfer', 'style and composition', 'style transfer precise', 'composition precise', 'unstyled']
-weights_unstyled = { 1: 0.7, 2: 0.7, 3: 0.98, 4: 0.5, 5: 0.5, 6: 0.25, 7: 0.7, 8: 0.8, 9: 0.85, 10: 0.9, 11: 0.95 }
+weights_unstyled = { 1: 1.0, 2: 1.0, 3: 1.0, 4: 0.75, 5: 0.75, 6: 0.4, 7: 1.0, 8: 1.0, 9: 1.0, 10: 1.0, 11: 1.0 }
 # end yct
 
 """
