@@ -377,6 +377,7 @@ def ipadapter_execute(model,
 
         if is_plus:
             img_cond_embeds = img_cond_embeds.penultimate_hidden_states
+            print("### shape of img_cond_embeds =", img_cond_embeds.shape)
             image_negative = image_negative if image_negative is not None else torch.zeros([1, clipvision_size, clipvision_size, 3])
             img_uncond_embeds = encode_image_masked(clipvision, image_negative, batch_size=encode_batch_size, clipvision_size=clipvision_size).penultimate_hidden_states
             if image_composition is not None:
