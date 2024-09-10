@@ -1977,7 +1977,7 @@ class LoadConceptsToRemove:
     @classmethod
     def INPUT_TYPES(s):
         input_dir = folder_paths.get_input_directory()
-        files = [os.path.relpath(os.path.join(root, file), input_dir) for root, dirs, files in os.walk(input_dir) for file in files if file.endswith('.concepts')]
+        files = [os.path.relpath(os.path.join(root, file), input_dir) for root, dirs, files in os.walk(input_dir) for file in files if file.endswith('.pt')]
         return {"required": {"concepts_to_remove": [sorted(files), ]}, }
 
     RETURN_TYPES = ("CONCEPTSTOREMOVE", )
