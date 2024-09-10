@@ -32,7 +32,7 @@ def clip_preprocess(image, size=224):
 class DummyClipVision:
     clip_vision = None
 
-    def __init__(self, clip_vision):
+    def __init__(self):
         # Initialize your CLIP vision model here
         with torch.inference_mode():
             self.clip_vision = CLIPVisionLoader('CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors')
