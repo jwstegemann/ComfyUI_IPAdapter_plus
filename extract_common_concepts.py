@@ -15,7 +15,6 @@ from tqdm import tqdm
 from PIL import Image
 import numpy as np
 
-clip_vision = CLIPVisionLoader('CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors')
 
 def clip_preprocess(image, size=224):
     mean = torch.tensor([ 0.48145466,0.4578275,0.40821073], device=image.device, dtype=image.dtype)
@@ -31,8 +30,12 @@ def clip_preprocess(image, size=224):
     return (image - mean.view([3,1,1])) / std.view([3,1,1])
 
 class DummyClipVision:
-    def __init__(self):
+    clip_vision = None
+
+    def __init__(self, clip_vision):
         # Initialize your CLIP vision model here
+        with torch.inference_mode():
+            self.clip_vision = CLIPVisionLoader('CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors')
         pass
 
     def get_embedding(self, file_path):
@@ -40,24 +43,25 @@ class DummyClipVision:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"The file {file_path} does not exist.")
 
-        # Open the image file
-        image = Image.open(file_path)
-        # Convert the image to RGB mode
-        image = image.convert("RGB")
-        # Convert the image to a numpy array and normalize
-        image_np = np.array(image, dtype=np.float32) / 255.0
-        # Convert to a PyTorch tensor and add a batch dimension
-        image_tensor = torch.from_numpy(image_np).unsqueeze(0)
+        with torch.inference_mode():
+            # Open the image file
+            image = Image.open(file_path)
+            # Convert the image to RGB mode
+            image = image.convert("RGB")
+            # Convert the image to a numpy array and normalize
+            image_np = np.array(image, dtype=np.float32) / 255.0
+            # Convert to a PyTorch tensor and add a batch dimension
+            image_tensor = torch.from_numpy(image_np).unsqueeze(0)
 
-        image_tensor = image_tensor.to(clip_vision.load_device)
-        pixel_values = clip_preprocess(image_tensor).float()
+            image_tensor = image_tensor.to(clip_vision.load_device)
+            pixel_values = clip_preprocess(image_tensor).float()
 
-        out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
-        result = out[1].to(comfy.model_management.intermediate_device())
-        print("created embedding for ", file_path, " of ", result.shape)
-        del image_tensor, pixel_values, out
-        print(torch.cuda.memory_allocated())
-        return result
+            out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
+            result = out[1].to(comfy.model_management.intermediate_device())
+            print("created embedding for ", file_path, " of ", result.shape)
+            del image_tensor, pixel_values, out
+            print(torch.cuda.memory_allocated())
+            return result
 
 def process_images(directory, clip_model):
     embeddings = []
@@ -70,17 +74,27 @@ def process_images(directory, clip_model):
     
     return torch.cat(embeddings, dim=0)
 
-def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, learning_rate=0.01):
+def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, learning_rate=0.01, loss_type='mean_max'):
     device = embeddings.device
-    embedding_dim = embeddings.shape[2]
+    embedding_dim = embeddings.shape[2]  # Should be 1280
     concept_vectors = torch.randn(num_concepts, embedding_dim, device=device, requires_grad=True)
     optimizer = torch.optim.Adam([concept_vectors], lr=learning_rate)
     
     pbar = tqdm(range(num_iterations), desc="Extracting concept vectors")
     for _ in pbar:
         optimizer.zero_grad()
-        similarities = F.cosine_similarity(embeddings.unsqueeze(1), concept_vectors.unsqueeze(0), dim=2)
-        loss = -torch.mean(torch.max(similarities, dim=1)[0])
+        
+        # Reshape embeddings to [n * 257, 1280]
+        embeddings_reshaped = embeddings.view(-1, embedding_dim)
+        
+        # Calculate cosine similarity
+        similarities = F.cosine_similarity(embeddings_reshaped.unsqueeze(1), concept_vectors.unsqueeze(0), dim=2)
+        
+        # Reshape similarities back to [n, 257, num_concepts]
+        similarities = similarities.view(embeddings.shape[0], embeddings.shape[1], -1)
+        
+        loss = -torch.mean(torch.max(similarities, dim=1)[0].max(dim=1)[0])
+        
         loss.backward()
         optimizer.step()
         
@@ -90,6 +104,7 @@ def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, lea
         pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
     
     return concept_vectors.detach()
+
 
 def main(args):
     # Initialize CLIP vision model
