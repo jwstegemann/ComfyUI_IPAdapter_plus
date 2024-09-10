@@ -53,10 +53,10 @@ class DummyClipVision:
             # Convert to a PyTorch tensor and add a batch dimension
             image_tensor = torch.from_numpy(image_np).unsqueeze(0)
 
-            image_tensor = image_tensor.to(clip_vision.load_device)
+            image_tensor = image_tensor.to(self.clip_vision.load_device)
             pixel_values = clip_preprocess(image_tensor).float()
 
-            out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
+            out = self.clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
             result = out[1].to(comfy.model_management.intermediate_device())
             print("created embedding for ", file_path, " of ", result.shape)
             del image_tensor, pixel_values, out
