@@ -56,7 +56,7 @@ class DummyClipVision:
         result = out[1].to(comfy.model_management.intermediate_device())
         print("created embedding for ", file_path, " of ", result.shape)
         del image_tensor, pixel_values, out
-        print(torch.cuda.memory_allocated)
+        print(torch.cuda.memory_allocated())
         return result
 
 def process_images(directory, clip_model):
