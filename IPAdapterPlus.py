@@ -241,7 +241,7 @@ def ipadapter_execute(model,
                       enhance_tiles=1,
                       enhance_ratio=1.0,
                       external_weights=None,
-                      zero_out=None):
+                      concepts_to_remove=None):
     device = model_management.get_torch_device()
     dtype = model_management.unet_dtype()
     if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
@@ -380,13 +380,13 @@ def ipadapter_execute(model,
         if is_plus:
             img_cond_embeds = img_cond_embeds.penultimate_hidden_states
             # yct
-            if (zero_out is not None):
-                zero_out.to(img_cond_embeds.device)
+            if (concepts_to_remove is not None):
+                concepts_to_remove.to(img_cond_embeds.device)
                 # Ensure the embeddings are normalized
                 embeddings = F.normalize(img_cond_embeds, dim=2)
     
                 # Ensure concept vectors are normalized
-                concept_vectors = F.normalize(zero_out, dim=1)
+                concept_vectors = F.normalize(concepts_to_remove, dim=1)
     
                 # Remove each concept vector
                 for concept_vector in concept_vectors:
@@ -792,7 +792,7 @@ class IPAdapterAdvanced:
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
                 "external_weights": ("IPADAPTERWEIGHTS",), # yct
-                "concepts_to_remove": ("CONCEPTSREMOVE",) # yct
+                "concepts_to_remove": ("CONCEPTSTOREMOVE",) # yct
             }
         }
 
