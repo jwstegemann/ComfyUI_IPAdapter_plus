@@ -1,11 +1,36 @@
+from comfy_script.runtime.real import *
+load(args = ComfyUIArgs("--output-directory", "/images/output", "--input-directory", "/images/input", "--disable-metadata", "--reserve-vram", "0.7", "--force-upcast-attention")) #, "--gpu-only", "--force-fp16", "--disable-smart-memory"))
+from comfy_script.runtime.real.nodes import *
+import time
+import torch
+import torch.cuda
+import comfy.model_management
+
 import argparse
 import os
 import torch
 from torch import nn
 import torch.nn.functional as F
-from torchvision import transforms
-from PIL import Image
 from tqdm import tqdm
+from PIL import Image
+import numpy as np
+
+clip_vision = CLIPVisionLoader('CLIP-ViT-H-14-laion2B-s32B-b79K.safetensors')
+
+
+def clip_preprocess(image, size=224):
+    mean = torch.tensor([ 0.48145466,0.4578275,0.40821073], device=image.device, dtype=image.dtype)
+    std = torch.tensor([0.26862954,0.26130258,0.27577711], device=image.device, dtype=image.dtype)
+    image = image.movedim(-1, 1)
+    if not (image.shape[2] == size and image.shape[3] == size):
+        scale = (size / min(image.shape[2], image.shape[3]))
+        image = torch.nn.functional.interpolate(image, size=(round(scale * image.shape[2]), round(scale * image.shape[3])), mode="bicubic", antialias=True)
+        h = (image.shape[2] - size)//2
+        w = (image.shape[3] - size)//2
+        image = image[:,:,h:h+size,w:w+size]
+    image = torch.clip((255. * image), 0, 255).round() / 255.0
+    return (image - mean.view([3,1,1])) / std.view([3,1,1])
+
 
 class ConceptVectorExtractor(nn.Module):
     def __init__(self, embedding_dim, num_concepts=1):
@@ -23,7 +48,6 @@ def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, lea
     model = ConceptVectorExtractor(embeddings.shape[1], num_concepts).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
-    # Add progress bar for the training loop
     pbar = tqdm(range(num_iterations), desc="Extracting concept vectors")
     for _ in pbar:
         optimizer.zero_grad()
@@ -32,32 +56,37 @@ def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, lea
         loss.backward()
         optimizer.step()
         
-        # Update progress bar with current loss
         pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
     
     return F.normalize(model.concept_vectors.data, dim=1)
 
-def dummy_embedding_creation(image_path, embedding_dim=512):
-    """
-    A dummy method to create embeddings. Replace this with your actual embedding creation method.
-    """
-    # This is just a placeholder. Replace with actual embedding creation logic.
-    return torch.randn(embedding_dim)
+def create_embeddings(file_path):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"The file {file_path} does not exist.")
 
-def process_images(directory, embedding_dim=512):
-    embeddings = []
-    image_files = [f for f in os.listdir(directory) if f.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff', '.bmp', '.gif'))]
-    
-    # Add progress bar for image processing
-    for filename in tqdm(image_files, desc="Processing images"):
-        image_path = os.path.join(directory, filename)
-        embedding = dummy_embedding_creation(image_path, embedding_dim)
-        embeddings.append(embedding)
-    return torch.stack(embeddings)
+    # Open the image file
+    image = Image.open(file_path)
+    # Convert the image to RGB mode
+    image = image.convert("RGB")
+    # Convert the image to a numpy array and normalize
+    image_np = np.array(image, dtype=np.float32) / 255.0
+    # Convert to a PyTorch tensor and add a batch dimension
+    image_tensor = torch.from_numpy(image_np).unsqueeze(0)
+
+    image_tensor = image_tensor.to(clip_vision.load_device)
+    pixel_values = clip_preprocess(image_tensor).float()
+
+    out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
+    return out[1].to(comfy.model_management.intermediate_device())
+
 
 def main(args):
-    # Process images and create embeddings
-    embeddings = process_images(args.directory, args.embedding_dim)
+    # Load pre-computed embeddings
+    embeddings = create_embeddings(args.embeddings_file)
+    
+    print(f"Loaded embeddings shape: {embeddings.shape}")
+    if embeddings.shape != torch.Size([257, 1280]):
+        print("Warning: Expected embeddings shape is [257, 1280], but got {embeddings.shape}")
     
     # Extract concept vectors
     concept_vectors = extract_concept_vectors(
@@ -75,9 +104,8 @@ def main(args):
     print("Concept vectors saved to 'concept_vectors.pt'")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Extract common concept vectors from images.")
-    parser.add_argument("directory", type=str, help="Directory containing the images")
-    parser.add_argument("--embedding_dim", type=int, default=512, help="Dimension of the embedding vectors")
+    parser = argparse.ArgumentParser(description="Extract common concept vectors from pre-computed embeddings.")
+    parser.add_argument("embeddings_file", type=str, help="File containing pre-computed embeddings")
     parser.add_argument("--num_concepts", type=int, default=3, help="Number of concept vectors to extract")
     parser.add_argument("--iterations", type=int, default=1000, help="Number of iterations for optimization")
     parser.add_argument("--learning_rate", type=float, default=0.01, help="Learning rate for optimization")
