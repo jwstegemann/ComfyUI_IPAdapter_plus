@@ -8,6 +8,7 @@ from node_helpers import conditioning_set_values
 from comfy.clip_vision import load as load_clip_vision
 from comfy.sd import load_lora_for_models
 import comfy.utils
+import torch.nn.functional as F
 
 import torch.nn as nn
 from PIL import Image
@@ -239,7 +240,8 @@ def ipadapter_execute(model,
                       composition_boost=None,
                       enhance_tiles=1,
                       enhance_ratio=1.0,
-                      external_weights=None):
+                      external_weights=None,
+                      zero_out=None):
     device = model_management.get_torch_device()
     dtype = model_management.unet_dtype()
     if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
@@ -377,6 +379,27 @@ def ipadapter_execute(model,
 
         if is_plus:
             img_cond_embeds = img_cond_embeds.penultimate_hidden_states
+            # yct
+            if (zero_out is not None):
+                zero_out.to(img_cond_embeds.device)
+                # Ensure the embeddings are normalized
+                embeddings = F.normalize(img_cond_embeds, dim=2)
+    
+                # Ensure concept vectors are normalized
+                concept_vectors = F.normalize(zero_out, dim=1)
+    
+                # Remove each concept vector
+                for concept_vector in concept_vectors:
+                    # Project embeddings onto concept vector
+                    projection = torch.sum(embeddings * concept_vector, dim=2, keepdim=True) / torch.sum(concept_vector * concept_vector)
+                    
+                    # Subtract the projection from the original embeddings
+                    embeddings = embeddings - projection * concept_vector
+
+                # Renormalize the result
+                img_cond_embeds = F.normalize(embeddings, dim=2)
+            #end yct
+
             print("### shape of img_cond_embeds =", img_cond_embeds.shape)
             image_negative = image_negative if image_negative is not None else torch.zeros([1, clipvision_size, clipvision_size, 3])
             img_uncond_embeds = encode_image_masked(clipvision, image_negative, batch_size=encode_batch_size, clipvision_size=clipvision_size).penultimate_hidden_states
@@ -768,7 +791,8 @@ class IPAdapterAdvanced:
                 "image_negative": ("IMAGE",),
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
-                "external_weights": ("IPADAPTERWEIGHTS",) # yct
+                "external_weights": ("IPADAPTERWEIGHTS",), # yct
+                "concepts_to_remove": ("CONCEPTSREMOVE",) # yct
             }
         }
 
@@ -781,7 +805,7 @@ class IPAdapterAdvanced:
     FUNCTION = "apply_ipadapter"
     CATEGORY = "ipadapter"
 
-    def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, external_weights=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0, style_boost=None, composition_boost=None, enhance_tiles=1, enhance_ratio=1.0, weight_kolors=1.0):
+    def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, external_weights=None, concepts_to_remove=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0, style_boost=None, composition_boost=None, enhance_tiles=1, enhance_ratio=1.0, weight_kolors=1.0):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
 
         if 'ipadapter' in ipadapter:
@@ -844,7 +868,8 @@ class IPAdapterAdvanced:
                 "enhance_tiles": enhance_tiles,
                 "enhance_ratio": enhance_ratio,
                 "weight_kolors": weight_kolors,
-                "external_weights": external_weights # yct
+                "external_weights": external_weights, # yct
+                "concepts_to_remove": concepts_to_remove # yct
             }
 
             work_model, face_image, embeds, ipa = ipadapter_execute(work_model, ipadapter_model, clip_vision, **ipa_args) # yct
@@ -1945,6 +1970,25 @@ class IPAdapterCombineParams:
             ipadapter_params["end_at"] += params_5["end_at"]
 
         return (ipadapter_params, )
+    
+
+# YCT
+class LoadConceptsToRemove:
+    @classmethod
+    def INPUT_TYPES(s):
+        input_dir = folder_paths.get_input_directory()
+        files = [os.path.relpath(os.path.join(root, file), input_dir) for root, dirs, files in os.walk(input_dir) for file in files if file.endswith('.concepts')]
+        return {"required": {"concepts_to_remove": [sorted(files), ]}, }
+
+    RETURN_TYPES = ("CONCEPTSTOREMOVE", )
+    FUNCTION = "load"
+    CATEGORY = "ipadapter/embeds"
+
+    def load(self, concepts_to_remove):
+        path = folder_paths.get_annotated_filepath(concepts_to_remove)
+        return (torch.load(path).cpu(), )
+
+# END YCT    
 
 """
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -2002,7 +2046,8 @@ NODE_CLASS_MAPPINGS = {
     # yct
     "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
     "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
-    "FacePlusWeights": FacePlusWeights
+    "FacePlusWeights": FacePlusWeights,
+    "LoadConceptsToRemove": LoadConceptsToRemove
     # end yct
 }
 
@@ -2053,6 +2098,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     # yct
     "ApplyFacePlusIPAdapter": "Apply FacePlus IPAdapter", 
     "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
-    "FacePlusWeights": "Weight for IPAdapter"
+    "FacePlusWeights": "Weight for IPAdapter",
+    "LoadConceptsToRemove": "Load Concepts to remove"
     # end yct
 }
