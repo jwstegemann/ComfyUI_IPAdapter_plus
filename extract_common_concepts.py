@@ -52,7 +52,10 @@ class DummyClipVision:
         pixel_values = clip_preprocess(image_tensor).float()
 
         out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
-        return out[1].to(comfy.model_management.intermediate_device())
+        result = out[1].to(comfy.model_management.intermediate_device())
+        del image_tensor, pixel_values, out
+        torch.cuda.empty_cache()
+        return result
 
 def process_images(directory, clip_model):
     embeddings = []
