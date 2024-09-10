@@ -36,6 +36,7 @@ class DummyClipVision:
         pass
 
     def get_embedding(self, file_path):
+        torch.cuda.empty_cache()
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"The file {file_path} does not exist.")
 
@@ -53,8 +54,9 @@ class DummyClipVision:
 
         out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
         result = out[1].to(comfy.model_management.intermediate_device())
+        print("created embedding for ", file_path, " of ", result.shape)
         del image_tensor, pixel_values, out
-        torch.cuda.empty_cache()
+        print(torch.cuda.memory_allocated)
         return result
 
 def process_images(directory, clip_model):
