@@ -381,6 +381,7 @@ def ipadapter_execute(model,
             img_cond_embeds = img_cond_embeds.penultimate_hidden_states
             # yct
             if (concepts_to_remove is not None):
+                print("Doing something")
                 concepts_to_remove.to(img_cond_embeds.device)
                 # Ensure the embeddings are normalized
                 embeddings = F.normalize(img_cond_embeds, dim=2)
@@ -1284,7 +1285,8 @@ class IPAdapterClipVisionEnhancer(IPAdapterAdvanced):
                 "image_negative": ("IMAGE",),
                 "attn_mask": ("MASK",),
                 "clip_vision": ("CLIP_VISION",),
-                "external_weights": ("IPADAPTERWEIGHTS",)
+                "external_weights": ("IPADAPTERWEIGHTS",),
+                "concepts_to_remove": ("CONCEPTSTOREMOVE",)
             }
         }
 
