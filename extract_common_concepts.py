@@ -76,24 +76,28 @@ def process_images(directory, clip_model):
 
 def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, learning_rate=0.01, loss_type='mean_max'):
     device = embeddings.device
-    embedding_dim = embeddings.shape[2]  # Should be 1280
+    n, token_count, embedding_dim = embeddings.shape  # n is number of images, should be [n, 257, 1280]
+    
+    # Initialize concept vectors
     concept_vectors = torch.randn(num_concepts, embedding_dim, device=device, requires_grad=True)
     optimizer = torch.optim.Adam([concept_vectors], lr=learning_rate)
     
-    pbar = tqdm(range(num_iterations), desc="Extracting concept vectors")
+    pbar = tqdm(range(num_iterations), desc="Extracting common concepts")
     for _ in pbar:
         optimizer.zero_grad()
         
-        # Reshape embeddings to [n * 257, 1280]
-        embeddings_reshaped = embeddings.view(-1, embedding_dim)
+        # Calculate cosine similarity for each token of each image with each concept vector
+        similarities = F.cosine_similarity(
+            embeddings.view(n * token_count, 1, embedding_dim),
+            concept_vectors.unsqueeze(0),
+            dim=2
+        ).view(n, token_count, num_concepts)
         
-        # Calculate cosine similarity
-        similarities = F.cosine_similarity(embeddings_reshaped.unsqueeze(1), concept_vectors.unsqueeze(0), dim=2)
+        # For each image and concept, get the maximum similarity across all tokens
+        max_similarities, _ = similarities.max(dim=1)  # Shape: [n, num_concepts]
         
-        # Reshape similarities back to [n, 257, num_concepts]
-        similarities = similarities.view(embeddings.shape[0], embeddings.shape[1], -1)
-        
-        loss = -torch.mean(torch.max(similarities, dim=1)[0].max(dim=1)[0])
+        # Our goal is to maximize the minimum similarity across all images for each concept
+        loss = -torch.min(max_similarities, dim=0)[0].mean()
         
         loss.backward()
         optimizer.step()
@@ -132,7 +136,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract common concept vectors from images using CLIP vision.")
     parser.add_argument("image_directory", type=str, help="Directory containing images")
-    parser.add_argument("--num_concepts", type=int, default=3, help="Number of concept vectors to extract")
+    parser.add_argument("--num_concepts", type=int, default=4, help="Number of concept vectors to extract")
     parser.add_argument("--iterations", type=int, default=1000, help="Number of iterations for optimization")
     parser.add_argument("--learning_rate", type=float, default=0.01, help="Learning rate for optimization")
     args = parser.parse_args()
