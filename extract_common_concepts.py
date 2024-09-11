@@ -58,9 +58,9 @@ class DummyClipVision:
 
             out = self.clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
             result = out[1].to(comfy.model_management.intermediate_device())
-            print("created embedding for ", file_path, " of ", result.shape)
+ #           print("created embedding for ", file_path, " of ", result.shape)
             del image_tensor, pixel_values, out
-            print(torch.cuda.memory_allocated())
+#            print(torch.cuda.memory_allocated())
             return result
 
 def process_images(directory, clip_model):
@@ -105,8 +105,8 @@ def extract_common_concepts(embeddings, num_concepts=1, num_iterations=1000, lea
         # Maximize similarity between extracted and target concepts
         loss = -F.cosine_similarity(concept_embeddings, concept_vectors_norm, dim=2).mean()
         
-#        if i % 10 == 0:  # Add some noise every 10 iterations
-#            loss += 0.01 * torch.randn(1, device=device)
+        if i % 10 == 0:  # Add some noise every 10 iterations
+            loss += 0.01 * torch.randn(1, device=device)
         
         loss.backward()
         
@@ -123,9 +123,9 @@ def extract_common_concepts(embeddings, num_concepts=1, num_iterations=1000, lea
         pbar.set_postfix({"Loss": f"{loss.item():.4f}", "Best Loss": f"{best_loss:.4f}"})
         
         # Early stopping
-        if i > 100 and loss.item() > best_loss * 1.1:
-            print("Early stopping triggered.")
-            break
+#        if i > 100 and loss.item() > best_loss * 1.1:
+#            print("Early stopping triggered.")
+#            break
     
     return best_concepts
 
