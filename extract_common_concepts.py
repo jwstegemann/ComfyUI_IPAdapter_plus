@@ -106,7 +106,7 @@ def extract_common_concepts(embeddings, num_concepts=1, num_iterations=1000, lea
         loss = -F.cosine_similarity(concept_embeddings, concept_vectors_norm, dim=2).mean()
         
         if i % 10 == 0:  # Add some noise every 10 iterations
-            loss += 0.01 * torch.randn(1, device=device)
+            loss = loss + 0.01 * torch.randn((), device=device).item()
         
         loss.backward()
         
