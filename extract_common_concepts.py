@@ -74,40 +74,60 @@ def process_images(directory, clip_model):
     
     return torch.cat(embeddings, dim=0)
 
-def extract_concept_vectors(embeddings, num_concepts=1, num_iterations=1000, learning_rate=0.01, loss_type='mean_max'):
+def extract_common_concepts(embeddings, num_concepts=1, num_iterations=1000, learning_rate=0.01, temp=0.07):
     device = embeddings.device
-    n, token_count, embedding_dim = embeddings.shape  # n is number of images, should be [n, 257, 1280]
+    n, token_count, embedding_dim = embeddings.shape
     
-    # Initialize concept vectors
     concept_vectors = torch.randn(num_concepts, embedding_dim, device=device, requires_grad=True)
     optimizer = torch.optim.Adam([concept_vectors], lr=learning_rate)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=50, verbose=True)
+    
+    best_loss = float('inf')
+    best_concepts = None
     
     pbar = tqdm(range(num_iterations), desc="Extracting common concepts")
-    for _ in pbar:
+    for i in pbar:
         optimizer.zero_grad()
         
-        # Calculate cosine similarity for each token of each image with each concept vector
-        similarities = F.cosine_similarity(
-            embeddings.view(n * token_count, 1, embedding_dim),
-            concept_vectors.unsqueeze(0),
-            dim=2
-        ).view(n, token_count, num_concepts)
+        # Normalize embeddings and concept vectors
+        embeddings_norm = F.normalize(embeddings.view(-1, embedding_dim), dim=1).view(n, token_count, embedding_dim)
+        concept_vectors_norm = F.normalize(concept_vectors, dim=1)
         
-        # For each image and concept, get the maximum similarity across all tokens
-        max_similarities, _ = similarities.max(dim=1)  # Shape: [n, num_concepts]
+        # Calculate cosine similarity with temperature scaling
+        similarities = torch.matmul(embeddings_norm, concept_vectors_norm.T) / temp
         
-        # Our goal is to maximize the minimum similarity across all images for each concept
-        loss = -torch.min(max_similarities, dim=0)[0].mean()
+        # Softmax over concepts for each token
+        attention = F.softmax(similarities, dim=2)
+        
+        # Weighted sum of token embeddings for each concept
+        concept_embeddings = torch.matmul(attention.transpose(1, 2), embeddings_norm)
+        
+        # Maximize similarity between extracted and target concepts
+        loss = -F.cosine_similarity(concept_embeddings, concept_vectors_norm, dim=2).mean()
+        
+#        if i % 10 == 0:  # Add some noise every 10 iterations
+#            loss += 0.01 * torch.randn(1, device=device)
         
         loss.backward()
+        
+        # Gradient clipping
+        torch.nn.utils.clip_grad_norm_(concept_vectors, max_norm=1.0)
+        
         optimizer.step()
+        scheduler.step(loss)
         
-        with torch.no_grad():
-            concept_vectors.data = F.normalize(concept_vectors.data, dim=1)
+        if loss.item() < best_loss:
+            best_loss = loss.item()
+            best_concepts = concept_vectors.clone().detach()
         
-        pbar.set_postfix({"Loss": f"{loss.item():.4f}"})
+        pbar.set_postfix({"Loss": f"{loss.item():.4f}", "Best Loss": f"{best_loss:.4f}"})
+        
+        # Early stopping
+        if i > 100 and loss.item() > best_loss * 1.1:
+            print("Early stopping triggered.")
+            break
     
-    return concept_vectors.detach()
+    return best_concepts
 
 
 def main(args):
@@ -120,11 +140,12 @@ def main(args):
     print(f"Created embeddings of shape: {embeddings.shape}")
     
     # Extract concept vectors
-    concept_vectors = extract_concept_vectors(
+    concept_vectors = extract_common_concepts(
         embeddings, 
         num_concepts=args.num_concepts,
         num_iterations=args.iterations,
-        learning_rate=args.learning_rate
+        learning_rate=args.learning_rate,
+        temp=args.temperature
     )
     
     print(f"Extracted {args.num_concepts} concept vectors of shape: {concept_vectors.shape}")
@@ -136,9 +157,10 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Extract common concept vectors from images using CLIP vision.")
     parser.add_argument("image_directory", type=str, help="Directory containing images")
-    parser.add_argument("--num_concepts", type=int, default=4, help="Number of concept vectors to extract")
+    parser.add_argument("--num_concepts", type=int, default=3, help="Number of concept vectors to extract")
     parser.add_argument("--iterations", type=int, default=1000, help="Number of iterations for optimization")
-    parser.add_argument("--learning_rate", type=float, default=0.01, help="Learning rate for optimization")
+    parser.add_argument("--learning_rate", type=float, default=0.01, help="Initial learning rate for optimization")
+    parser.add_argument("--temperature", type=float, default=0.07, help="Temperature for softmax")
     args = parser.parse_args()
     
     main(args)
