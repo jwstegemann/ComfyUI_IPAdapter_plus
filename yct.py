@@ -158,7 +158,6 @@ class ApplyFacePlusIPAdapter():
         ipadapterinstance.to(device, dtype=dtype)
 
         if isinstance(weight, list):
-            print("list???")
             weight = weight[0]
 
         if attn_mask is not None:

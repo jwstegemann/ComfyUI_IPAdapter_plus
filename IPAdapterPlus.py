@@ -381,7 +381,7 @@ def ipadapter_execute(model,
             img_cond_embeds = img_cond_embeds.penultimate_hidden_states
             # yct
             if (concepts_to_remove is not None):
-                print("Doing something")
+                print("Removing Concepts")
                 concepts_to_remove.to(img_cond_embeds.device)
                 # Ensure the embeddings are normalized
                 embeddings = F.normalize(img_cond_embeds, dim=2)
@@ -401,7 +401,6 @@ def ipadapter_execute(model,
                 img_cond_embeds = F.normalize(embeddings, dim=2)
             #end yct
 
-            print("### shape of img_cond_embeds =", img_cond_embeds.shape)
             image_negative = image_negative if image_negative is not None else torch.zeros([1, clipvision_size, clipvision_size, 3])
             img_uncond_embeds = encode_image_masked(clipvision, image_negative, batch_size=encode_batch_size, clipvision_size=clipvision_size).penultimate_hidden_states
             if image_composition is not None:
@@ -808,8 +807,6 @@ class IPAdapterAdvanced:
 
     def apply_ipadapter(self, model, ipadapter, start_at=0.0, end_at=1.0, weight=1.0, weight_style=1.0, weight_composition=1.0, expand_style=False, weight_type="linear", combine_embeds="concat", weight_faceidv2=None, image=None, image_style=None, image_composition=None, image_negative=None, clip_vision=None, external_weights=None, attn_mask=None, insightface=None, embeds_scaling='V only', layer_weights=None, ipadapter_params=None, encode_batch_size=0, style_boost=None, composition_boost=None, enhance_tiles=1, enhance_ratio=1.0, weight_kolors=1.0, concepts_to_remove=None):
         is_sdxl = isinstance(model.model, (comfy.model_base.SDXL, comfy.model_base.SDXLRefiner, comfy.model_base.SDXL_instructpix2pix))
-
-        print("CONCEPTS_TO_REMOVE = ", concepts_to_remove)
 
         if 'ipadapter' in ipadapter:
             ipadapter_model = ipadapter['ipadapter']['model']

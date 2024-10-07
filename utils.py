@@ -299,12 +299,10 @@ def encode_image_masked_(clip_vision, image, mask=None, batch_size=0, clipvision
         out = clip_vision.model(pixel_values=pixel_values, intermediate_output=-2)
 
         if not hasattr(outputs, "last_hidden_state"):
-            print("#####AAAA")
             outputs["last_hidden_state"] = out[0].to(model_management.intermediate_device())
             outputs["image_embeds"] = out[2].to(model_management.intermediate_device())
             outputs["penultimate_hidden_states"] = out[1].to(model_management.intermediate_device())
         else:
-            print("#####BBBB")
             outputs["last_hidden_state"] = torch.cat((outputs["last_hidden_state"], out[0].to(model_management.intermediate_device())), dim=0)
             outputs["image_embeds"] = torch.cat((outputs["image_embeds"], out[2].to(model_management.intermediate_device())), dim=0)
             outputs["penultimate_hidden_states"] = torch.cat((outputs["penultimate_hidden_states"], out[1].to(model_management.intermediate_device())), dim=0)
