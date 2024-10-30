@@ -364,4 +364,4 @@ class ApplyCompositionAndStyleIPAdapter():
             set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
             number += 1
 
-        return (model)
+        return (work_model)
