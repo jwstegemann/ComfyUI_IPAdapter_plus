@@ -1997,7 +1997,7 @@ class LoadConceptsToRemove:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 # yct
-from .yct import (ApplyFacePlusIPAdapter, FacePlusIPAdapterFromEmbeds, FacePlusWeights)
+from .yct import (ApplyCompositionAndStyleIPAdapter, ApplyFacePlusIPAdapter, FacePlusIPAdapterFromEmbeds, FacePlusWeights, CompositionStyleIPAdapterFromEmbeds)
 # end yct
 
 NODE_CLASS_MAPPINGS = {
@@ -2048,7 +2048,9 @@ NODE_CLASS_MAPPINGS = {
     "ApplyFacePlusIPAdapter": ApplyFacePlusIPAdapter, 
     "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
     "FacePlusWeights": FacePlusWeights,
-    "LoadConceptsToRemove": LoadConceptsToRemove
+    "LoadConceptsToRemove": LoadConceptsToRemove,
+    "CompositionStyleIPAdapterFromEmbeds": CompositionStyleIPAdapterFromEmbeds
+    "ApplyCompositionAndStyleIPAdapter": ApplyCompositionAndStyleIPAdapter
     # end yct
 }
 
@@ -2100,6 +2102,8 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "ApplyFacePlusIPAdapter": "Apply FacePlus IPAdapter", 
     "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
     "FacePlusWeights": "Weight for IPAdapter",
-    "LoadConceptsToRemove": "Load Concepts to remove"
+    "LoadConceptsToRemove": "Load Concepts to remove",
+    "CompositionStyleIPAdapterFromEmbeds": "Composition&Style IPAdapter from Embeds"
+    "ApplyCompositionAndStyleIPAdapter": "Apply Composition&Sryle IPAdapter"
     # end yct
 }

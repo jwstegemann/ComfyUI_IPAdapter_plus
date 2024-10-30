@@ -92,6 +92,61 @@ class FacePlusIPAdapterFromEmbeds():
         return (ipa, )
 
 
+class CompositionStyleIPAdapterFromEmbeds():
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "ipadapter": ("IPADAPTER", ),
+                "embeds": ("EMBEDS", ),
+            },
+            "optional": {
+            }
+        }
+
+    CATEGORY = "ipadapter/plus"
+    RETURN_TYPES = ("IPADAPTERINSTANCE", )
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, ipadapter, embeds):
+        from .IPAdapterPlus import IPAdapter
+
+        # print("in embeds: ", embeds)
+
+        if ipadapter is None:
+            raise Exception("Missing IPAdapter model.")
+        
+        device = model_management.get_torch_device()
+        dtype = model_management.unet_dtype()
+        if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
+            dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
+
+        output_cross_attention_dim = ipadapter["ip_adapter"]["1.to_k_ip.weight"].shape[1]
+        cross_attention_dim = 1280 # if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
+        clip_extra_context_tokens = 16 # if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
+
+        img_cond_embeds = embeds['img_cond_embeds'].to(device, dtype=dtype)
+
+        ipa = IPAdapter(
+            ipadapter,
+            cross_attention_dim=cross_attention_dim,
+            output_cross_attention_dim=output_cross_attention_dim,
+            clip_embeddings_dim=img_cond_embeds.shape[-1],
+            clip_extra_context_tokens=clip_extra_context_tokens,
+            is_sdxl=True,
+            is_plus=True,
+            is_full=False,
+            is_faceid=False,
+            is_portrait_unnorm=False,
+            is_kwai_kolors=False,
+            encoder_hid_proj=None,
+            weight_kolors=False
+        ).to(device, dtype=dtype)
+
+        del ipadapter
+
+        return (ipa, )
+
 
 class FacePlusWeights():
     @classmethod
@@ -212,3 +267,99 @@ class ApplyFacePlusIPAdapter():
             number += 1
 
         return (work_model, )
+
+
+
+class ApplyCompositionAndStyleIPAdapter():
+    @classmethod
+    def INPUT_TYPES(s):
+        from .IPAdapterPlus import WEIGHT_TYPES
+
+        return {
+            "required": {
+                "model": ("MODEL", ),
+                "ipadapterinstance": ("IPADAPTERINSTANCE", ),
+                "embeds": ("EMBEDS", ),
+                "weight_style": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "weight_composition": ("FLOAT", { "default": 1.0, "min": 0, "max": 5, "step": 0.05 }),
+                "expand_style": ("BOOLEAN", { "default": False }),                
+                "start_at": ("FLOAT", { "default": 0.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "end_at": ("FLOAT", { "default": 1.0, "min": 0.0, "max": 1.0, "step": 0.001 }),
+                "embeds_scaling": (['V only', 'K+V', 'K+V w/ C penalty', 'K+mean(V) w/ C penalty'], ),
+            },
+            "optional": {
+                "attn_mask": ("MASK",),
+            }
+        }
+
+    CATEGORY = "ipadapter/plus"
+    RETURN_TYPES = ("MODEL",)
+    FUNCTION = "apply_ipadapter"
+
+    def apply_ipadapter(self, model, ipadapterinstance, embeds, weight_style, weight_composition, expand_style, start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
+        from .IPAdapterPlus import set_model_patch_replace, weights_unstyled
+
+        device = model_management.get_torch_device()
+        dtype = model_management.unet_dtype()
+        if dtype not in [torch.float32, torch.float16, torch.bfloat16]:
+            dtype = torch.float16 if comfy.model_management.should_use_fp16() else torch.float32
+
+        ipadapterinstance.to(device, dtype=dtype)
+
+        weight = weight_style
+        weight_type = "strong style and composition" if expand_style else "style and composition"
+        weight = [weight]
+
+        if weight_type == "style and composition":
+            weight = { 3:weight_composition, 6:weight }
+        elif weight_type == "strong style and composition":
+            weight = { 0:weight, 1:weight, 2:weight, 3:weight_composition, 4:weight, 5:weight, 6:weight, 7:weight, 8:weight, 9:weight, 10:weight }
+
+        if attn_mask is not None:
+            attn_mask = attn_mask.to(device, dtype=dtype)
+
+        cond = embeds['cond'].to(device, dtype=dtype) if embeds['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
+        # TODO: check if noise helps with the uncond face embeds
+        uncond = embeds['uncond'].to(device, dtype=dtype) if embeds['uncond'] is not None else None # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
+        cond_alt = embeds['cond_alt'].to(device, dtype=dtype) if embeds['cond_alt'] is not None else None # None
+        # if img_comp_cond_embeds is not None:
+        #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
+
+        work_model = model.clone()
+
+        sigma_start = work_model.get_model_object("model_sampling").percent_to_sigma(start_at)
+        sigma_end = work_model.get_model_object("model_sampling").percent_to_sigma(end_at)
+
+        patch_kwargs = {
+            "ipadapter": ipadapterinstance,
+            "weight": weight,
+            "cond": cond,
+            "cond_alt": cond_alt,
+            "uncond": uncond,
+            "weight_type": weight_type,
+            "mask": attn_mask,
+            "sigma_start": sigma_start,
+            "sigma_end": sigma_end,
+            "unfold_batch": False,
+            "embeds_scaling": embeds_scaling,
+        }
+
+        number = 0
+        for id in [4,5,7,8]: # id of input_blocks that have cross attention
+            block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
+            for index in block_indices:
+                patch_kwargs["module_key"] = str(number*2+1)
+                set_model_patch_replace(model, patch_kwargs, ("input", id, index))
+                number += 1
+        for id in range(6): # id of output_blocks that have cross attention
+            block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
+            for index in block_indices:
+                patch_kwargs["module_key"] = str(number*2+1)
+                set_model_patch_replace(model, patch_kwargs, ("output", id, index))
+                number += 1
+        for index in range(10):
+            patch_kwargs["module_key"] = str(number*2+1)
+            set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
+            number += 1
+
+        return (model)
