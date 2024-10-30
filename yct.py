@@ -248,6 +248,7 @@ class ApplyFacePlusIPAdapter():
             "unfold_batch": False,
             "embeds_scaling": embeds_scaling,
         }
+        
         number = 0
         for id in [4,5,7,8]: # id of input_blocks that have cross attention
             block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
@@ -364,4 +365,4 @@ class ApplyCompositionAndStyleIPAdapter():
             set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
             number += 1
 
-        return (work_model)
+        return (work_model, )
