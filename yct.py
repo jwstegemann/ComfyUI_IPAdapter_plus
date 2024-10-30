@@ -351,17 +351,17 @@ class ApplyCompositionAndStyleIPAdapter():
             block_indices = range(2) if id in [4, 5] else range(10) # transformer_depth
             for index in block_indices:
                 patch_kwargs["module_key"] = str(number*2+1)
-                set_model_patch_replace(model, patch_kwargs, ("input", id, index))
+                set_model_patch_replace(work_model, patch_kwargs, ("input", id, index))
                 number += 1
         for id in range(6): # id of output_blocks that have cross attention
             block_indices = range(2) if id in [3, 4, 5] else range(10) # transformer_depth
             for index in block_indices:
                 patch_kwargs["module_key"] = str(number*2+1)
-                set_model_patch_replace(model, patch_kwargs, ("output", id, index))
+                set_model_patch_replace(work_model, patch_kwargs, ("output", id, index))
                 number += 1
         for index in range(10):
             patch_kwargs["module_key"] = str(number*2+1)
-            set_model_patch_replace(model, patch_kwargs, ("middle", 0, index))
+            set_model_patch_replace(work_model, patch_kwargs, ("middle", 0, index))
             number += 1
 
         return (work_model)
