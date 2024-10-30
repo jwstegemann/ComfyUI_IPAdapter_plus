@@ -321,7 +321,9 @@ class ApplyCompositionAndStyleIPAdapter():
         cond = embeds['cond'].to(device, dtype=dtype) if embeds['cond'] is not None else None # ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2)
         # TODO: check if noise helps with the uncond face embeds
         uncond = embeds['uncond'].to(device, dtype=dtype) if embeds['uncond'] is not None else None # ipa.get_image_embeds_faceid_plus(torch.zeros_like(face_cond_embeds), img_uncond_embeds, weight_faceidv2, is_faceidv2)
-        cond_alt = embeds['cond_alt'].to(device, dtype=dtype) if embeds['cond_alt'] is not None else None # None
+        cond_alt = embeds['cond_alt'] if embeds['cond_alt'] is not None else None # None
+        if cond_alt:
+            cond_alt["3"].to(device, dtype=dtype)
         # if img_comp_cond_embeds is not None:
         #     cond_alt = { 3: cond_comp.to(device, dtype=dtype) }
 
