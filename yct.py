@@ -309,7 +309,6 @@ class ApplyCompositionAndStyleIPAdapter():
 
         weight = weight_style
         weight_type = "strong style and composition" if expand_style else "style and composition"
-        weight = [weight]
 
         if weight_type == "style and composition":
             weight = { 3:weight_composition, 6:weight }
