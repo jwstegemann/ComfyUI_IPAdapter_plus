@@ -2049,7 +2049,7 @@ NODE_CLASS_MAPPINGS = {
     "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
     "FacePlusWeights": FacePlusWeights,
     "LoadConceptsToRemove": LoadConceptsToRemove,
-    "CompositionStyleIPAdapterFromEmbeds": CompositionStyleIPAdapterFromEmbeds
+    "CompositionStyleIPAdapterFromEmbeds": CompositionStyleIPAdapterFromEmbeds,
     "ApplyCompositionAndStyleIPAdapter": ApplyCompositionAndStyleIPAdapter
     # end yct
 }
