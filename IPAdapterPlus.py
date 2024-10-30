@@ -2103,7 +2103,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
     "FacePlusWeights": "Weight for IPAdapter",
     "LoadConceptsToRemove": "Load Concepts to remove",
-    "CompositionStyleIPAdapterFromEmbeds": "Composition&Style IPAdapter from Embeds"
+    "CompositionStyleIPAdapterFromEmbeds": "Composition&Style IPAdapter from Embeds", 
     "ApplyCompositionAndStyleIPAdapter": "Apply Composition&Sryle IPAdapter"
     # end yct
 }
