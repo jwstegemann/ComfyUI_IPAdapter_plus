@@ -9,6 +9,7 @@ from comfy.clip_vision import load as load_clip_vision
 from comfy.sd import load_lora_for_models
 import comfy.utils
 import torch.nn.functional as F
+from copy import deepcopy
 
 import torch.nn as nn
 from PIL import Image
@@ -502,6 +503,8 @@ def ipadapter_execute(model,
         weight_kolors=weight_kolors
     ).to(device, dtype=dtype)
 
+    bare_ipa = deepcopy(ipa)
+
     if is_faceid and is_plus:
         cond = ipa.get_image_embeds_faceid_plus(face_cond_embeds, img_cond_embeds, weight_faceidv2, is_faceidv2, encode_batch_size)
         # TODO: check if noise helps with the uncond face embeds
@@ -571,7 +574,7 @@ def ipadapter_execute(model,
 
     # yct
     # return (model, image)
-    return (model, image, embeds, ipa)
+    return (model, image, embeds, bare_ipa)
     # end yct
 
 """
