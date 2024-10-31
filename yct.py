@@ -11,6 +11,7 @@ import comfy.utils
 
 import torch.nn as nn
 from PIL import Image
+from copy import deepcopy
 
 try:
     import torchvision.transforms.v2 as T
@@ -296,8 +297,6 @@ class ApplyCompositionAndStyleIPAdapter():
     CATEGORY = "ipadapter/plus"
     RETURN_TYPES = ("MODEL",)
     FUNCTION = "apply_ipadapter"
-
-from copy import deepcopy
 
     def apply_ipadapter(self, model, ipadapterinstance, embeds, weight_style, weight_composition, expand_style, start_at=0.0, end_at=1.0, embeds_scaling='V only', attn_mask=None):
         from .IPAdapterPlus import set_model_patch_replace, weights_unstyled
