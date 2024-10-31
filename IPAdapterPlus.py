@@ -477,6 +477,15 @@ def ipadapter_execute(model,
     if is_kwai_kolors_faceid and hasattr(model.model, "diffusion_model") and hasattr(model.model.diffusion_model, "encoder_hid_proj"):
         encoder_hid_proj = model.model.diffusion_model.encoder_hid_proj.state_dict()
 
+    print("---------------")
+    print("- ", weight_type)
+    print(cross_attention_dim)
+    print(output_cross_attention_dim)
+    print(img_cond_embeds.shape[-1])
+    print(clip_extra_context_tokens)
+    print("---------------")
+
+
     ipa = IPAdapter(
         ipadapter,
         cross_attention_dim=cross_attention_dim,
