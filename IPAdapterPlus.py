@@ -478,15 +478,6 @@ def ipadapter_execute(model,
     if is_kwai_kolors_faceid and hasattr(model.model, "diffusion_model") and hasattr(model.model.diffusion_model, "encoder_hid_proj"):
         encoder_hid_proj = model.model.diffusion_model.encoder_hid_proj.state_dict()
 
-    print("---------------")
-    print("- ", weight_type)
-    print(cross_attention_dim)
-    print(output_cross_attention_dim)
-    print(img_cond_embeds.shape[-1])
-    print(clip_extra_context_tokens)
-    print("---------------")
-
-
     ipa = IPAdapter(
         ipadapter,
         cross_attention_dim=cross_attention_dim,
@@ -2007,7 +1998,7 @@ class LoadConceptsToRemove:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 """
 # yct
-from .yct import (ApplyCompositionAndStyleIPAdapter, ApplyFacePlusIPAdapter, FacePlusIPAdapterFromEmbeds, FacePlusWeights, CompositionStyleIPAdapterFromEmbeds)
+from .yct import (ApplyCompositionAndStyleIPAdapter, ApplyFacePlusIPAdapter, FacePlusIPAdapterFromEmbeds, FacePlusWeights, CreateIPAdapter)
 # end yct
 
 NODE_CLASS_MAPPINGS = {
@@ -2059,7 +2050,7 @@ NODE_CLASS_MAPPINGS = {
     "FacePlusIPAdapterFromEmbeds": FacePlusIPAdapterFromEmbeds,
     "FacePlusWeights": FacePlusWeights,
     "LoadConceptsToRemove": LoadConceptsToRemove,
-    "CompositionStyleIPAdapterFromEmbeds": CompositionStyleIPAdapterFromEmbeds,
+    "CreateIPAdapter": CreateIPAdapter,
     "ApplyCompositionAndStyleIPAdapter": ApplyCompositionAndStyleIPAdapter
     # end yct
 }
@@ -2113,7 +2104,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "FacePlusIPAdapterFromEmbeds": "FacePlus IPAdapter from Embeds",
     "FacePlusWeights": "Weight for IPAdapter",
     "LoadConceptsToRemove": "Load Concepts to remove",
-    "CompositionStyleIPAdapterFromEmbeds": "Composition&Style IPAdapter from Embeds", 
+    "CreateIPAdapter": "Create IPAdapter from Model", 
     "ApplyCompositionAndStyleIPAdapter": "Apply Composition&Sryle IPAdapter"
     # end yct
 }

@@ -93,13 +93,12 @@ class FacePlusIPAdapterFromEmbeds():
         return (ipa, )
 
 
-class CompositionStyleIPAdapterFromEmbeds():
+class CreateIPAdapter():
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
                 "ipadapter": ("IPADAPTER", ),
-                "embeds": ("EMBEDS", ),
             },
             "optional": {
             }
@@ -109,10 +108,8 @@ class CompositionStyleIPAdapterFromEmbeds():
     RETURN_TYPES = ("IPADAPTERINSTANCE", )
     FUNCTION = "apply_ipadapter"
 
-    def apply_ipadapter(self, ipadapter, embeds):
+    def apply_ipadapter(self, ipadapter):
         from .IPAdapterPlus import IPAdapter
-
-        # print("in embeds: ", embeds)
 
         if ipadapter is None:
             raise Exception("Missing IPAdapter model.")
@@ -126,13 +123,13 @@ class CompositionStyleIPAdapterFromEmbeds():
         cross_attention_dim = 1280 # if (is_plus and is_sdxl and not is_faceid) or is_portrait_unnorm else output_cross_attention_dim
         clip_extra_context_tokens = 16 # if (is_plus and not is_faceid) or is_portrait or is_portrait_unnorm else 4
 
-        img_cond_embeds = embeds['img_cond_embeds'].to(device, dtype=dtype)
+        # img_cond_embeds = embeds['img_cond_embeds'].to(device, dtype=dtype)
 
         ipa = IPAdapter(
             ipadapter,
             cross_attention_dim=cross_attention_dim,
             output_cross_attention_dim=output_cross_attention_dim,
-            clip_embeddings_dim=img_cond_embeds.shape[-1],
+            clip_embeddings_dim=1280, # img_cond_embeds.shape[-1],
             clip_extra_context_tokens=clip_extra_context_tokens,
             is_sdxl=True,
             is_plus=True,
